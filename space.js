@@ -1,5 +1,5 @@
 var sound = new Howl({
-    src: ['https://shapeintheglass.github.io/wav/exterior_bg_track.ogg'],
+    src: ['https://shapeintheglass.github.io/wav/exterior_bg_track.wav'],
     loop: true,
     volume: 1.0,
 });
@@ -92,6 +92,8 @@ let foley = [foley01, foley02, foley03, foley05, foley06, foley07, foley08, fole
 
 
 var isPlaying = false;
+var currFoley;
+var prevFoleyIndex = -1;
 
 function onPlayClick() {
     if (!isPlaying) {
@@ -99,22 +101,32 @@ function onPlayClick() {
         mg_detected.play();
         airlock.play();
         sound.play();
-        var timeout = 7000 + Math.floor(Math.random() * 10000);
+        var timeout = 5000 + Math.floor(Math.random() * 10000);
         console.log("next one in " + timeout + " ms");
         setTimeout(playFoley, timeout);
     } else {
         console.log("stopping sound!");
-        sound.pause();
+        sound.stop();
+        mg_detected.stop();
+        airlock.stop();
+        currFoley.stop();
     }
     isPlaying = !isPlaying;
 }
 
 function playFoley() {
     if (isPlaying) {
-        var index = Math.floor(Math.random() * 20);
-        console.log("playing foley " + index)
-        foley[index].play();
-        var timeout = 7000 + Math.floor(Math.random() * 10000);
+        var stereo = (Math.random() * 2) - 1;
+        var index = Math.floor(Math.random() * 19);
+        while (index == prevFoleyIndex) {
+            index = Math.floor(Math.random() * 19);
+        }
+        prevFoleyIndex = index;
+        console.log("playing foley " + index + " with panning " + stereo);
+        currFoley = foley[index];
+        currFoley.stereo(stereo);
+        currFoley.play();
+        var timeout = 5000 + Math.floor(Math.random() * 10000);
         console.log("next one in " + timeout + " ms");
         setTimeout(playFoley, timeout);
     }

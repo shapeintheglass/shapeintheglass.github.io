@@ -92,7 +92,7 @@ let foley = [foley01, foley02, foley03, foley05, foley06, foley07, foley08, fole
 
 
 var isPlaying = false;
-var currFoley;
+var currFoley = foley[0];
 var prevFoleyIndex = -1;
 
 function onPlayClick() {
@@ -101,7 +101,7 @@ function onPlayClick() {
         mg_detected.play();
         airlock.play();
         sound.play();
-        var timeout = 5000 + Math.floor(Math.random() * 10000);
+        var timeout = 7000 + Math.floor(Math.random() * 10000);
         console.log("next one in " + timeout + " ms");
         setTimeout(playFoley, timeout);
     } else {
@@ -126,7 +126,7 @@ function playFoley() {
         currFoley = foley[index];
         currFoley.stereo(stereo);
         currFoley.play();
-        var timeout = 5000 + Math.floor(Math.random() * 10000);
+        var timeout = 7000 + Math.floor(Math.random() * 10000);
         console.log("next one in " + timeout + " ms");
         setTimeout(playFoley, timeout);
     }

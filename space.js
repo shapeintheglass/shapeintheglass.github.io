@@ -4,6 +4,12 @@ var sound = new Howl({
     volume: 1.0,
 });
 
+var airlock = new Howl({
+    src: ["https://shapeintheglass.github.io/wav/airlock.ogg"],
+});
+var mg_detected = new Howl({
+    src: ["https://shapeintheglass.github.io/wav/microgravitydetected.wav"],
+});
 var foley01 = new Howl({
     src: ['https://shapeintheglass.github.io/wav/amb_01.wav'],
     volume: 1.0,
@@ -14,10 +20,6 @@ var foley02 = new Howl({
 });
 var foley03 = new Howl({
     src: ['https://shapeintheglass.github.io/wav/amb_03.wav'],
-    volume: 1.0,
-});
-var foley04 = new Howl({
-    src: ['https://shapeintheglass.github.io/wav/amb_04.wav'],
     volume: 1.0,
 });
 var foley05 = new Howl({
@@ -85,7 +87,7 @@ var foley20 = new Howl({
     volume: 1.0,
 });
 
-let foley = [foley01, foley02, foley03, foley04, foley05, foley06, foley07, foley08, foley09, foley10,
+let foley = [foley01, foley02, foley03, foley05, foley06, foley07, foley08, foley09, foley10,
     foley11, foley12, foley13, foley14, foley15, foley16, foley17, foley18, foley19, foley20]
 
 
@@ -94,8 +96,10 @@ var isPlaying = false;
 function onPlayClick() {
     if (!isPlaying) {
         console.log("playing sound!");
+        mg_detected.play();
+        airlock.play();
         sound.play();
-        var timeout = 5000 + Math.floor(Math.random() * 10000);
+        var timeout = 7000 + Math.floor(Math.random() * 10000);
         console.log("next one in " + timeout + " ms");
         setTimeout(playFoley, timeout);
     } else {
@@ -110,7 +114,7 @@ function playFoley() {
         var index = Math.floor(Math.random() * 20);
         console.log("playing foley " + index)
         foley[index].play();
-        var timeout = 5000 + Math.floor(Math.random() * 10000);
+        var timeout = 7000 + Math.floor(Math.random() * 10000);
         console.log("next one in " + timeout + " ms");
         setTimeout(playFoley, timeout);
     }

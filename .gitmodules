@@ -1,3 +1,6 @@
 [submodule "howler.js"]
 	path = howler.js
 	url = https://github.com/goldfire/howler.js.git
+[submodule "siriwave"]
+	path = siriwave
+	url = https://github.com/kopiro/siriwave.git

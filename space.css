@@ -2,16 +2,23 @@ body {
     background-color: black;
 }
 .centerpanel {
-    background-color: grey;
-    opacity: 0.5;
     margin: 0;
     position: absolute;
-    width: 50%;
     top: 50%;
     left: 50%;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     text-align: center;
+}
+
+.playbutton {
+    color: white;
+    opacity: 0.75;
+}
+
+.playbutton:hover {
+    opacity: 1.0;
+    cursor: pointer;
 }
 
 .videobg {
@@ -44,4 +51,8 @@ body {
         width: 300%;
         left: -100%;
     }
+}
+
+.material-icons.md-100 {
+    font-size: 100px;
 }

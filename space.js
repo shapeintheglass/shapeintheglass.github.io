@@ -1,4 +1,4 @@
-var sound = new Howl({
+var bgSound = new Howl({
     src: ['https://shapeintheglass.github.io/wav/exterior_bg_track.wav'],
     loop: true,
     volume: 1.0,
@@ -94,24 +94,39 @@ let foley = [foley01, foley02, foley03, foley05, foley06, foley07, foley08, fole
 var isPlaying = false;
 var currFoley = foley[0];
 var prevFoleyIndex = -1;
+var timeout = null;
+var isFirst = true;
 
 function onPlayClick() {
     if (!isPlaying) {
+        if (isFirst) {
+            isFirst = false;
+            console.log("playing first time sound");
+            mg_detected.play();
+            airlock.play();
+        }
+        document.getElementById("playpause").innerHTML = "pause_circle_outline";
         console.log("playing sound!");
-        mg_detected.play();
-        airlock.play();
-        sound.play();
-        var timeout = 7000 + Math.floor(Math.random() * 10000);
-        console.log("next one in " + timeout + " ms");
-        setTimeout(playFoley, timeout);
+        //siriWave.start();
+        bgSound.play();
+        startFoley();
     } else {
+        document.getElementById("playpause").innerHTML = "play_circle_outline";
         console.log("stopping sound!");
-        sound.stop();
+        //siriWave.stop();
+        bgSound.stop();
         mg_detected.stop();
         airlock.stop();
         currFoley.stop();
+        clearTimeout(timeout);
     }
     isPlaying = !isPlaying;
+}
+
+function startFoley() {
+    var timeoutMs = 7000 + Math.floor(Math.random() * 10000);
+    console.log("next one in " + timeoutMs + " ms");
+    timeout = setTimeout(playFoley, timeoutMs);
 }
 
 function playFoley() {
@@ -126,8 +141,8 @@ function playFoley() {
         currFoley = foley[index];
         currFoley.stereo(stereo);
         currFoley.play();
-        var timeout = 7000 + Math.floor(Math.random() * 10000);
-        console.log("next one in " + timeout + " ms");
-        setTimeout(playFoley, timeout);
+        var timeoutMs = 7000 + Math.floor(Math.random() * 10000);
+        console.log("next one in " + timeoutMs + " ms");
+        timeout = setTimeout(playFoley, timeoutMs);
     }
 }

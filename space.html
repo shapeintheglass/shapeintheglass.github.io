@@ -4,8 +4,8 @@
 
 <head>
     <link href="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <div class="videobg">
@@ -15,9 +15,9 @@
 </div>
 
 <div class="centerpanel">
-    <button onClick="onPlayClick()" class="mdc-button foo-button">
-        <div class="mdc-button__ripple"></div>
-        <i class="material-icons mdc-button__icon" aria-hidden="true">play_circle_outline</i>
-        <span class="mdc-button__label">Play</span>
-    </button>
+    <div class="playbutton" onclick="onPlayClick()">
+        <i class="material-icons md-100" id="playpause">
+            play_circle_outline
+        </i>
+    </div>
 </div>

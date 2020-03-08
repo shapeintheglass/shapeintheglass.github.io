@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\wav"
+    "\\siriwave",
+    "\\siriwave\\dist"
   ],
   "SelectedNode": "\\space.js",
   "PreviewInSolutionExplorer": false

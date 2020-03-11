@@ -1,7 +1,5 @@
 var bgSound = new Howl({
     src: ['https://shapeintheglass.github.io/wav/exterior_bg_track.wav'],
-    loop: true,
-    volume: 1.0,
 });
 
 var airlock = new Howl({
@@ -95,32 +93,62 @@ var isPlaying = false;
 var currFoley = foley[0];
 var prevFoleyIndex = -1;
 var timeout = null;
+var bgTimeout = null;
 var isFirst = true;
 
 function onPlayClick() {
+    var spacevideo = document.getElementById('spacevideo');
+    var playpause = document.getElementById('playpause');
+
     if (!isPlaying) {
+        isPlaying = true;
+        spacevideo.play();
         if (isFirst) {
             isFirst = false;
             console.log("playing first time sound");
             mg_detected.play();
             airlock.play();
         }
-        document.getElementById("playpause").innerHTML = "pause_circle_outline";
+        playpause.innerHTML = "pause_circle_outline";
         console.log("playing sound!");
-        //siriWave.start();
-        bgSound.play();
+        loopBgSound();
         startFoley();
     } else {
-        document.getElementById("playpause").innerHTML = "play_circle_outline";
+        isPlaying = false;
+        spacevideo.pause();
+        $("#playpause").fadeTo(1000, 0.75);
+        playpause.innerHTML = "play_circle_outline";
         console.log("stopping sound!");
-        //siriWave.stop();
         bgSound.stop();
         mg_detected.stop();
         airlock.stop();
         currFoley.stop();
         clearTimeout(timeout);
+        clearTimeout(bgTimeout);
     }
-    isPlaying = !isPlaying;
+}
+
+// Highlight play/pause button on mouse over
+function onPlayHover() {
+    $("#playpause").fadeTo(1000, 1);    
+}
+
+function onPlayOut() {
+    if (isPlaying) {
+        $("#playpause").delay(3000).fadeTo(1000, 0);
+    }
+}
+
+
+function loopBgSound() {
+    if (isPlaying) {
+        var overlapMs = 100;
+        bgSound.play();
+
+        // Call again with given delay
+        var bgTimeoutMs = Math.floor(bgSound.duration() * 1000) - overlapMs;
+        bgTimeout = setTimeout(loopBgSound, bgTimeoutMs);
+    }
 }
 
 function startFoley() {

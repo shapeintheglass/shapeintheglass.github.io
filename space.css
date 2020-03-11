@@ -17,7 +17,6 @@ body {
 }
 
 .playbutton:hover {
-    opacity: 1.0;
     cursor: pointer;
 }
 
@@ -39,6 +38,10 @@ body {
     height: 100%;
 }
 
+.material-icons.md-100 {
+    font-size: 200px;
+}
+
 @media (min-aspect-ratio: 16/9) {
     #spacevideo {
         height: 300%;
@@ -51,8 +54,4 @@ body {
         width: 300%;
         left: -100%;
     }
-}
-
-.material-icons.md-100 {
-    font-size: 100px;
 }

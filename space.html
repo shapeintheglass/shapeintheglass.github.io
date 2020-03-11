@@ -1,5 +1,6 @@
 <script src="howler.js/dist/howler.js"></script>
 <script src="space.js"></script>
+<script src="jquery-3.4.1.min.js"></script>
 <link rel="stylesheet" type="text/css" href="space.css">
 
 <head>
@@ -8,16 +9,20 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
-<div class="videobg">
-    <video autoplay muted loop poster="wav/space_still.png" id="spacevideo">
-        <source src="wav/space.webm" type="video/webm">
-    </video>
-</div>
 
-<div class="centerpanel">
-    <div class="playbutton" onclick="onPlayClick()">
-        <i class="material-icons md-100" id="playpause">
-            play_circle_outline
-        </i>
+<body>
+    <div class="videobg">
+        <video muted loop poster="wav/space_still.png" id="spacevideo">
+            <source src="wav/space.webm" type="video/webm">
+        </video>
     </div>
-</div>
+
+    <div class="centerpanel"  onclick="onPlayClick()" onmouseover="onPlayHover()" onmouseout="onPlayOut()">
+        <div class="playbutton">
+            <i class="material-icons md-100" id="playpause">
+                play_circle_outline
+            </i>
+        </div>
+    </div>
+
+</body>

@@ -70,6 +70,10 @@ function drawCards(charId) {
 		if (card == "fool") {
 			numCards = numCards + 1;
 			cardEffect = cardEffect.concat(" (one add'l card drawn due to fool)")
+			// Hack for Cern- if this is his first card, reduce his intent to one
+			if (charId == 0) {
+				numCards = 1;
+			}
 		}
 		charCards.push(card)
 		charCardEffects.push(cardEffect)
@@ -185,6 +189,9 @@ var dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 var allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
 var rowIdSuffix = "-row";
 var cellIdConcat = "-";
+var numBadTrials = 0;
+var numWishTrials = 0;
+var numBossTrials = 0;
 
 function onMontecarloClick() {
 	resetDeck();
@@ -193,13 +200,34 @@ function onMontecarloClick() {
 	for (var i = 0; i < numTrials; i++) {
 		generateScenario();
 		// Update totals
+		var veryBadDrawn = false;
+		var wishDrawn = false;
+		var bossDrawn = false;
 		for (var charNameIndex = 0; charNameIndex < numChars; charNameIndex++) {
 			var cards = allCharCards[charNameIndex];
 			for (var c = 0; c < cards.length; c++) {
 				// Get index of card
 				var cardIndex = allCards.indexOf(cards[c]);
 				allData[charNameIndex][cardIndex]++;
+				if (!veryBadDrawn && (cards[c] == "void" || cards[c] == "donjon")) {
+					veryBadDrawn = true;
+				}
+				if (!wishDrawn && (cards[c] == "moon" || cards[c] == "fates")) {
+					wishDrawn = true;
+				}
+				if (!bossDrawn && (cards[c] == "flames" || cards[c] == "skull")) {
+					bossDrawn = true;
+				}
 			}
+		}
+		if (veryBadDrawn) {
+			numBadTrials++;
+		}
+		if (wishDrawn) {
+			numWishTrials++;
+		}
+		if (bossDrawn) {
+			numBossTrials++;
 		}
 	}
 	showMonteCarloData(numTrials);
@@ -231,6 +259,13 @@ function showMonteCarloData(numTrials) {
 		
 		document.getElementById(charRowName).innerHTML = rowHtml;
 	}
+	
+	var veryBadPercent = Math.floor(numBadTrials / numTrials * 100)
+	document.getElementById("num-bad-trials").innerHTML = veryBadPercent
+	var wishPercent = Math.floor(numWishTrials / numTrials * 100)
+	document.getElementById("num-wish-trials").innerHTML = wishPercent
+	var bossPercent = Math.floor(numBossTrials / numTrials * 100)
+	document.getElementById("num-boss-trials").innerHTML = bossPercent
 }
 
 function resetMCUI() {
@@ -240,6 +275,9 @@ function resetMCUI() {
 	ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
+	numBadTrials = 0;
+	numWishTrials = 0;
+	numBossTrials = 0;
 	document.getElementById("header-row").innerHTML = "";
 	for (var i = 0; i < numChars; i++) {
 		var elementName = characters[i].concat(rowIdSuffix);

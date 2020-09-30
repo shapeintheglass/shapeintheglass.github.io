@@ -42,6 +42,10 @@ function drawCards(numCards, charId, charEffectsId) {
 			cardEffect = cardEffect.concat(" (no more cards can be drawn)")
 			numCards = 0;
 		}
+		if (currentDeck.length == 0) {
+			cardEffect = cardEffect.concat(" (drew the last card, wtf)")
+			numCards = 0;
+		}
 		// Determine if additional cards can be drawn
 		if (card == "jester" && flipCoin()) {
 			numCards = numCards + 2;

@@ -55,7 +55,7 @@
 	<li>In this version of the deck, all cards that have already been pulled are destroyed. This applies to the Gem and Throne cards. However, all other cards in the standard 22 card deck are assumedly viable.</li>
 	<li>If a card offers a choice of drawing more cards (jester, idiot), a coin is flipped to decide whether this should be done.</li>
 	<li>If a card's effect means that no further cards can be drawn (donjon, void), then no further cards are drawn by that character.</li>
-	<li>Cern can only draw two cards total, and neither of them can be donjon or void (because presumably this would make it impossible for him to make it to this episode). If Cern gets an invalid hand, the scenario is retried.</li>
+	<li>Cern can only draw two cards total, and neither of them can be donjon or void (because presumably this would make it impossible for him to make it to this episode). He also cannot have drawn Talon (destroys all magical possessions), because this would have destroyed the deck. If Cern gets an invalid hand, the scenario is retried.</li>
 	</ul></p>
 	
 	<h2>Montecarlo simulation</h2>
@@ -66,7 +66,7 @@
 	<br/>
 	
 	<p>
-	This chart shows the % of trials in which a particular character recieved a particular card. The totals won't add up to 100% since not all cards will be drawn in every trial.
+	This chart shows the % of trials (rounded to the nearest percent) in which a particular character recieved a particular card. The totals won't add up to 100% since not all cards will be drawn in every trial.
 	</p>
 	<table>
 		<tr id="header-row">
@@ -80,6 +80,8 @@
 		<tr id="ron-row">
 		</tr>
 		<tr id="dog-row">
+		</tr>
+		<tr id="totals-row">
 		</tr>
 	</table>
 	

@@ -15,6 +15,7 @@ var characters = ["cern", "henry", "glenn", "ron", "dog"]
 var charsDraws = [2, 3, 4, 2, 2]
 var idsSuffix = "-cards";
 var effectsIdSuffix = "-effects";
+var invalidCernCards = ["void", "donjon", "talon"]
 
 var currentDeck = [...allCards]
 var allCharCards = []
@@ -85,10 +86,10 @@ function drawCards(charId) {
 			return false;
 			
 		}
-		if (veryBadCards.indexOf(charCards[0]) != -1 || veryBadCards.indexOf(charCards[1]) != -1) {
+		if (invalidCernCards.indexOf(charCards[0]) != -1 || invalidCernCards.indexOf(charCards[1]) != -1) {
 			// Drew a card that shouldn't be possible
 			return false;
-		}			
+		}
 	}
 	
 	allCharCards.push(charCards);
@@ -186,6 +187,7 @@ var henryMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 var glennMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var totalMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
 var rowIdSuffix = "-row";
 var cellIdConcat = "-";
@@ -211,6 +213,7 @@ function onMontecarloClick() {
 				// Get index of card
 				var cardIndex = allCards.indexOf(cards[c]);
 				allData[charNameIndex][cardIndex]++;
+				totalMcData[cardIndex]++;
 				if (!veryBadDrawn && (cards[c] == "void" || cards[c] == "donjon")) {
 					veryBadDrawn = true;
 				}
@@ -268,6 +271,17 @@ function showMonteCarloData(numTrials) {
 		document.getElementById(charRowName).innerHTML = rowHtml;
 	}
 	
+	var totalsRowHtml = "<td>Totals</td>";
+	for (var cardId = 0; cardId < allCards.length; cardId++) {
+		var cellHtml = "<td>"
+		
+		var percent = Math.floor(totalMcData[cardId] / numTrials * 100);
+		cellHtml = cellHtml.concat(percent);
+		cellHtml = cellHtml.concat("%</td>");
+		totalsRowHtml = totalsRowHtml.concat(cellHtml);
+	}
+	document.getElementById("totals-row").innerHTML = totalsRowHtml;
+	
 	var veryBadPercent = Math.floor(numBadTrials / numTrials * 100)
 	document.getElementById("num-bad-trials").innerHTML = veryBadPercent
 	var wishPercent = Math.floor(numWishTrials / numTrials * 100)
@@ -284,6 +298,7 @@ function resetMCUI() {
 	glennMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	totalMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
 	numBadTrials = 0;
 	numWishTrials = 0;

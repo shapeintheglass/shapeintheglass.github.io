@@ -1,0 +1,60 @@
+Cern - 2
+Henry - 3
+Glenn - 4
+Ron - 2
+Mustache - 2
+
+
+
+Buttons:
+get outcome - draws for all five characters
+montecristo(n) - conducts n trials
+reset - clears UI
+
+Methods:
+
+get outcome - draws for all characters
+getcard(deck) - returns one card from the deck
+isscrewed - 
+reset - resets deck, clears ui
+
+deck - array of strings
+
+
+Already drawn (2) - Gem, Throne
+Good (8) - The Fates, Jester, Key, Knight, Moon, Star, Sun, Vizier
+Neutral (1) - Comet
+Bad (9) - Balance, Euryale, Flames, Fool, Idiot, Rogue, Ruin, Skull, Talon
+Very bad (2) - Donjon, Void
+
+Already drawn - 2
+ - Gem
+ - Throne
+
+Good - 8
+ - The Fates
+ - Jester
+ - Key
+ - Knight
+ - Moon
+ - Star
+ - Sun
+ - Vizier
+
+Neutral - 1
+ - Comet
+
+Bad - 9
+ - Balance
+ - Euryale
+ - Flames
+ - Fool
+ - Idiot
+ - Rogue
+ - Ruin
+ - Skull
+ - Talon
+
+Very bad (instadeath or similar) - 2
+ - Donjon
+ - Void

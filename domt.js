@@ -205,6 +205,8 @@ function onMontecarloClick() {
 	showMonteCarloData(numTrials);
 }
 
+var humanReadableNames = ["Cern", "Henry", "Glenn", "Ron", "Mr. Mustache"];
+
 function showMonteCarloData(numTrials) {
 	var headerHtml = "<th>Character</th>";
 	for (var i = 0; i < allCards.length; i++) {
@@ -217,7 +219,7 @@ function showMonteCarloData(numTrials) {
 	for (var charId = 0; charId < numChars; charId++) {
 		var charRowName = characters[charId].concat(rowIdSuffix);
 		var rowHtml = "<td>"
-		rowHtml = rowHtml.concat(characters[charId]);
+		rowHtml = rowHtml.concat(humanReadableNames[charId]);
 		rowHtml = rowHtml.concat("</td>");
 		var cardCounts = allData[charId];
 		for (var cardIndex = 0; cardIndex < allCards.length; cardIndex++) {

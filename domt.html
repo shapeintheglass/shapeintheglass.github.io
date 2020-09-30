@@ -1,16 +1,55 @@
 <script src="domt.js"></script>
 <link rel="stylesheet" type="text/css" href="domt.css">
 
-<head>
-    <link href="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
-
 <body>
 	<h1>Dungeons and Daddies "Deck of many things" outcome generator</h1>
 	<h2>Spoilers for episode 43!</h2>
 	<p>In episode 43, five characters have drawn from the deck of many things. What possible outcomes are there?</p>
+	<br/>
+    <div class="btn">
+		<button type="button" onclick="onGenerateScenarioClick()">Generate</button>
+		<button type="button" onclick="onClearClick()">Clear</button>
+	</div>
+	<br/>
+	<table>
+		<tr>
+			<th>Character</th>
+			<th># declared</th>
+			<th>Potential cards</th>
+			<th>Potential effects</th>
+		</tr>
+		<tr>
+			<td class="centered">Cern</td>
+			<td class="centered">2</td>
+			<td id="cern-cards"></td>
+			<td id="cern-effects"></td>
+		</tr>
+		<tr>
+			<td class="centered">Henry</td>
+			<td class="centered">3</td>
+			<td id="henry-cards"></td>
+			<td id="henry-effects"></td>
+		</tr>
+		<tr>
+			<td class="centered">Glenn</td>
+			<td class="centered">4</td>
+			<td id="glenn-cards"></td>
+			<td id="glenn-effects"></td>
+		</tr>
+		<tr>
+			<td class="centered">Ron</td>
+			<td class="centered">2</td>
+			<td id="ron-cards"></td>
+			<td id="ron-effects"></td>
+		</tr>
+		<tr>
+			<td class="centered">Mr. Mustache</td>
+			<td class="centered">2</td>
+			<td id="dog-cards"></td>
+			<td id="dog-effects"></td>
+		</tr>
+	</table>
+	
 	<p>Notes: 
 	<ul>
 	<li>In this version of the deck, all cards that have already been pulled are destroyed. This applies to the Gem and Throne cards. However, all other cards in the standard 22 card deck are assumedly viable.</li>
@@ -18,45 +57,4 @@
 	<li>If a card's effect means that no further cards can be drawn (donjon, void), then no further cards are drawn by that character.</li>
 	<li>Cern can only draw two cards total, and neither of them can be donjon or void (because presumably this would make it impossible for him to make it to this episode). If Cern gets an invalid hand, the scenario is retried.</li>
 	</ul></p>
-	<br/>
-    <div class="btn"><button type="button" onclick="onGenerateScenarioClick()">Generate</button><button type="button" onclick="onClearClick()">Clear</button></div>
-	<br/>
-	<table>
-		<tr>
-			<th>Character</th>
-			<th>Cards declared</th>
-			<th>Potential cards</th>
-			<th>Potential effects</th>
-		</tr>
-		<tr>
-			<td>Cern</td>
-			<td>2</td>
-			<td id="cern-cards"></td>
-			<td id="cern-effects"></td>
-		</tr>
-		<tr>
-			<td>Henry</td>
-			<td>3</td>
-			<td id="henry-cards"></td>
-			<td id="henry-effects"></td>
-		</tr>
-		<tr>
-			<td>Glenn</td>
-			<td>4</td>
-			<td id="glenn-cards"></td>
-			<td id="glenn-effects"></td>
-		</tr>
-		<tr>
-			<td>Ron</td>
-			<td>2</td>
-			<td id="ron-cards"></td>
-			<td id="ron-effects"></td>
-		</tr>
-		<tr>
-			<td>Mr. Mustache</td>
-			<td>2</td>
-			<td id="dog-cards"></td>
-			<td id="dog-effects"></td>
-		</tr>
-	</table>
 </body>

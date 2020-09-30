@@ -1,5 +1,5 @@
 body {
-	width: 600px;
+	width: 1000px;
 	margin: auto;
 	font-family: sans-serif;
 }
@@ -10,8 +10,12 @@ table {
 table, th, td {
   border: 1px solid black;
 }
-.btn {
+.btn1 {
 	width: 200px;
+	margin: auto;
+}
+.btn2 {
+	width: 400px;
 	margin: auto;
 }
 .bad {

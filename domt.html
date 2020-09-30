@@ -6,7 +6,7 @@
 	<h2>Spoilers for episode 43!</h2>
 	<p>In episode 43, five characters have drawn from the deck of many things. What possible outcomes are there?</p>
 	<br/>
-    <div class="btn">
+    <div class="btn1">
 		<button type="button" onclick="onGenerateScenarioClick()">Generate</button>
 		<button type="button" onclick="onClearClick()">Clear</button>
 	</div>
@@ -56,5 +56,31 @@
 	<li>If a card offers a choice of drawing more cards (jester, idiot), a coin is flipped to decide whether this should be done.</li>
 	<li>If a card's effect means that no further cards can be drawn (donjon, void), then no further cards are drawn by that character.</li>
 	<li>Cern can only draw two cards total, and neither of them can be donjon or void (because presumably this would make it impossible for him to make it to this episode). If Cern gets an invalid hand, the scenario is retried.</li>
+	</ul></p>
+	
+	<h2>Montecarlo simulation</h2>
+	
+	<p>This runs a large number of scenarios and calculates the percentage of times that each character recieved a specific card. A larger number of trials will be more "accurate" but will take longer to compute.</p>
+	
+	<div class="btn2">Number of trials: <input id="trials" type="number" value="1000"></input><button type="button" onclick="onMontecarloClick()">Go</button><button type="button" onclick="resetMCUI()">Clear</button></div>
+	<br/>
+	<table>
+		<tr id="header-row">
+		</tr>
+		<tr id="cern-row">
+		</tr>
+		<tr id="henry-row">
+		</tr>
+		<tr id="glenn-row">
+		</tr>
+		<tr id="ron-row">
+		</tr>
+		<tr id="dog-row">
+		</tr>
+	</table>
+	
+	<p>Notes: 
+	<ul>
+	<li>Due to the rules established above, Cern cannot have drawn fool, void, or donjon.</li>
 	</ul></p>
 </body>

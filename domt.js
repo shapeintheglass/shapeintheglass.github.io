@@ -10,32 +10,44 @@ var veryBadCardsEffects = ["become entombed in an extradimensional sphere. canno
 var allCards = goodCards.concat(neutralCards, badCards, veryBadCards)
 var allCardsEffects = goodCardsEffects.concat(neutralCardsEffects, badCardsEffects, veryBadCardsEffects)
 
-var currentDeck = [...allCards]
-
 var numChars = 5
-var charsIds = ["cern-cards", "henry-cards", "glenn-cards", "ron-cards", "dog-cards"]
-var charsEffectsIds = ["cern-effects", "henry-effects", "glenn-effects", "ron-effects", "dog-effects"]
+var characters = ["cern", "henry", "glenn", "ron", "dog"]
 var charsDraws = [2, 3, 4, 2, 2]
+var idsSuffix = "-cards";
+var effectsIdSuffix = "-effects";
+
+var currentDeck = [...allCards]
+var allCharCards = []
+var allCharEffects = []
 
 function onGenerateScenarioClick() {
-	onClearClick()
-	for (var i = 0; i < numChars; i++ ) {
-		var success = drawCards(charsDraws[i], charsIds[i], charsEffectsIds[i])
-		if (!success) {
-			// Hack, redo the previous one
-			i--;
-		}
+	onClearClick();
+	generateScenario();
+	setScenarioUI();
+}
+
+function generateScenario() {
+	resetDeck();
+	// Roll cards for cern until he gets a valid combination
+	while (!drawCards(0)) {
+		console.log("invalid configuration found for cern, restarting")
+		resetDeck();
+	}
+	
+	// Draw remaining cards
+	for (var remainingCharIndex = 1; remainingCharIndex < numChars; remainingCharIndex++ ) {
+		drawCards(remainingCharIndex)
 	}
 }
 
-function drawCards(numCards, charId, charEffectsId) {
+function drawCards(charId) {
+	var numCards = charsDraws[charId];
 	var charCards = [];
 	var charCardEffects = [];
-	for (var i = 0; i < numCards; i++) {
+	for (var cardIndex = 0; cardIndex < numCards; cardIndex++) {
 		var card = currentDeck.pop();
 		var cardEffectIndex = allCards.indexOf(card)
 		var cardEffect = allCardsEffects[cardEffectIndex]
-
 		
 		// Determine if we should stop here
 		if (card == "donjon" || card == "void") {
@@ -43,8 +55,8 @@ function drawCards(numCards, charId, charEffectsId) {
 			numCards = 0;
 		}
 		if (currentDeck.length == 0) {
-			cardEffect = cardEffect.concat(" (drew the last card, wtf)")
-			numCards = 0;
+			console.log("ran out of cards!")
+			return false;
 		}
 		// Determine if additional cards can be drawn
 		if (card == "jester" && flipCoin()) {
@@ -63,7 +75,7 @@ function drawCards(numCards, charId, charEffectsId) {
 		charCardEffects.push(cardEffect)
 	}
 	// Special case for Cern- he can only have drawn 2 cards and neither of them are void or donjon
-	if (charId == "cern-cards") {
+	if (charId == 0) {
 		if (charCards.length != 2) {
 			// Drew too many or too few cards
 			return false;
@@ -75,7 +87,8 @@ function drawCards(numCards, charId, charEffectsId) {
 		}			
 	}
 	
-	updateCardsAndEffects(charId, charEffectsId, charCards, charCardEffects)
+	allCharCards.push(charCards);
+	allCharEffects.push(charCardEffects);
 	return true;
 }
 
@@ -97,57 +110,137 @@ function onClearClick() {
 function resetDeck() {
 	currentDeck = [...allCards]
 	shuffleDeck() 
-	var charsCards = [[]]
+	allCharCards = []
+	allCharEffects = []
 }
 
 function shuffleDeck() {
 	var numCards = currentDeck.length
-	for (var i = numCards - 1; i > 0; i--) {
-		var j = Math.floor(Math.random() * (i + 1));
-		var temp = currentDeck[i];
-		currentDeck[i] = currentDeck[j];
-		currentDeck[j] = temp;
+	for (var i1 = numCards - 1; i1 > 0; i1--) {
+		var j1 = Math.floor(Math.random() * (i1 + 1));
+		var temp = currentDeck[i1];
+		currentDeck[i1] = currentDeck[j1];
+		currentDeck[j1] = temp;
 	}
 }
 
-function updateCardsAndEffects(charId, charEffectsId, charCards, charCardEffects) {
-	var numCards = charCards.length
-	var cardsCell = document.getElementById(charId)
-	var cardsList = "<ol>";
-	for (var i = 0; i < numCards; i++) {
-		var card = charCards[i]
-		// Decide text color to convey 'badness' of outcome
-		if (badCards.indexOf(card) != -1) {
-			cardsList = cardsList.concat("<li class='bad'>")
-		} else if (goodCards.indexOf(card) != -1) {
-			cardsList = cardsList.concat("<li class='good'>")
-		} else if (veryBadCards.indexOf(card) != -1) {
-			cardsList = cardsList.concat("<li class='verybad'>")
-		} else {
-			cardsList = cardsList.concat("<li class='neutral'>")
+function setScenarioUI() {
+	for (var charIndex = 0; charIndex < numChars; charIndex++) {
+		var characterName = characters[charIndex];
+		var charCards = allCharCards[charIndex];
+		var charCardEffects = allCharEffects[charIndex];
+		
+		var numCards = charCards.length
+		var charCardsId = characterName.concat(idsSuffix)
+		var charEffectsId = characterName.concat(effectsIdSuffix)
+		var cardsCell = document.getElementById(charCardsId)
+		var cardsList = "<ol>";
+		for (var i = 0; i < numCards; i++) {
+			var card = charCards[i]
+			// Decide text color to convey 'badness' of outcome
+			if (badCards.indexOf(card) != -1) {
+				cardsList = cardsList.concat("<li class='bad'>")
+			} else if (goodCards.indexOf(card) != -1) {
+				cardsList = cardsList.concat("<li class='good'>")
+			} else if (veryBadCards.indexOf(card) != -1) {
+				cardsList = cardsList.concat("<li class='verybad'>")
+			} else {
+				cardsList = cardsList.concat("<li class='neutral'>")
+			}
+			cardsList = cardsList.concat(card)
+			cardsList = cardsList.concat("</li>")
 		}
-		cardsList = cardsList.concat(card)
-		cardsList = cardsList.concat("</li>")
+		cardsList = cardsList.concat("</ol>")
+		cardsCell.innerHTML = cardsList;
+		
+		var cardEffectsCell = document.getElementById(charEffectsId)
+		var cardEffectsList = "<ol>";
+		for (var i = 0; i < numCards; i++) {
+			cardEffectsList = cardEffectsList.concat("<li>")
+			cardEffectsList = cardEffectsList.concat(charCardEffects[i])
+			cardEffectsList = cardEffectsList.concat("</li>")
+		}
+		cardEffectsList = cardEffectsList.concat("</ol>")
+		cardEffectsCell.innerHTML = cardEffectsList;
 	}
-	cardsList = cardsList.concat("</ol>")
-	cardsCell.innerHTML = cardsList;
-	
-	var cardEffectsCell = document.getElementById(charEffectsId)
-	var cardEffectsList = "<ol>";
-	for (var i = 0; i < numCards; i++) {
-		cardEffectsList = cardEffectsList.concat("<li>")
-		cardEffectsList = cardEffectsList.concat(charCardEffects[i])
-		cardEffectsList = cardEffectsList.concat("</li>")
-	}
-	cardEffectsList = cardEffectsList.concat("</ol>")
-	cardEffectsCell.innerHTML = cardEffectsList;
 }
 
 function resetUI() {
 	for (var i = 0; i < numChars; i++) {
-		var cardsCell = document.getElementById(charsIds[i])
-		var cardEffectsCell = document.getElementById(charsEffectsIds[i])
+		var charCardsId = characters[i].concat(idsSuffix)
+		var charEffectsId = characters[i].concat(effectsIdSuffix)
+		var cardsCell = document.getElementById(charCardsId)
+		var cardEffectsCell = document.getElementById(charEffectsId)
 		cardsCell.innerHTML = "";
 		cardEffectsCell.innerHTML = "";
+	}
+}
+
+// Stat totals for each card drawn
+var cernMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var henryMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var glennMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
+var rowIdSuffix = "-row";
+var cellIdConcat = "-";
+
+function onMontecarloClick() {
+	resetDeck();
+	resetMCUI();
+	var numTrials = document.getElementById("trials").value
+	for (var i = 0; i < numTrials; i++) {
+		generateScenario();
+		// Update totals
+		for (var charNameIndex = 0; charNameIndex < numChars; charNameIndex++) {
+			var cards = allCharCards[charNameIndex];
+			for (var c = 0; c < cards.length; c++) {
+				// Get index of card
+				var cardIndex = allCards.indexOf(cards[c]);
+				allData[charNameIndex][cardIndex]++;
+			}
+		}
+	}
+	showMonteCarloData(numTrials);
+}
+
+function showMonteCarloData(numTrials) {
+	var headerHtml = "<th>Character</th>";
+	for (var i = 0; i < allCards.length; i++) {
+		headerHtml = headerHtml.concat("<th>");
+		headerHtml = headerHtml.concat(allCards[i]);
+		headerHtml = headerHtml.concat("</th>");
+	}
+	document.getElementById("header-row").innerHTML = headerHtml;
+	
+	for (var charId = 0; charId < numChars; charId++) {
+		var charRowName = characters[charId].concat(rowIdSuffix);
+		var rowHtml = "<td>"
+		rowHtml = rowHtml.concat(characters[charId]);
+		rowHtml = rowHtml.concat("</td>");
+		var cardCounts = allData[charId];
+		for (var cardIndex = 0; cardIndex < allCards.length; cardIndex++) {
+			rowHtml = rowHtml.concat("<td>");
+			var percent = Math.floor(cardCounts[cardIndex] / numTrials * 100);
+			rowHtml = rowHtml.concat(percent);
+			rowHtml = rowHtml.concat("%</td>");
+		}
+		
+		document.getElementById(charRowName).innerHTML = rowHtml;
+	}
+}
+
+function resetMCUI() {
+	cernMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	henryMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	glennMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
+	document.getElementById("header-row").innerHTML = "";
+	for (var i = 0; i < numChars; i++) {
+		var elementName = characters[i].concat(rowIdSuffix);
+		document.getElementById(elementName).innerHTML = "";
 	}
 }

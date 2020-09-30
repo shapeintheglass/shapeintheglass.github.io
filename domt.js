@@ -39,11 +39,11 @@ function drawCards(numCards, charId, charEffectsId) {
 			numCards = 0;
 		}
 		// Determine if additional cards can be drawn
-		if (card == "jester" && flipCoin) {
+		if (card == "jester" && flipCoin()) {
 			numCards = numCards + 2;
 			cardEffect = cardEffect.concat(" (two add'l cards drawn due to jester)")
 		}
-		if (card == "idiot" && flipCoin) {
+		if (card == "idiot" && flipCoin()) {
 			numCards = numCards + 1;
 			cardEffect = cardEffect.concat(" (one add'l card drawn due to idiot)")
 		}
@@ -58,7 +58,13 @@ function drawCards(numCards, charId, charEffectsId) {
 }
 
 function flipCoin() {
-	return Math.random < 0.5;
+	if (Math.random() < 0.5) {
+		console.log("coin flipped heads")
+		return true;
+	} else {
+		console.log("coin flipped tails")
+		return false;
+	}
 }
 
 function onClearClick() {

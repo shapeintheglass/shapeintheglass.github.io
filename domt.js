@@ -20,7 +20,11 @@ var charsDraws = [2, 3, 4, 2, 2]
 function onGenerateScenarioClick() {
 	onClearClick()
 	for (var i = 0; i < numChars; i++ ) {
-		drawCards(charsDraws[i], charsIds[i], charsEffectsIds[i])
+		var success = drawCards(charsDraws[i], charsIds[i], charsEffectsIds[i])
+		if (!success) {
+			// Hack, redo the previous one
+			i--;
+		}
 	}
 }
 
@@ -54,7 +58,21 @@ function drawCards(numCards, charId, charEffectsId) {
 		charCards.push(card)
 		charCardEffects.push(cardEffect)
 	}
+	// Special case for Cern- he can only have drawn 2 cards and neither of them are void or donjon
+	if (charId == "cern-cards") {
+		if (charCards.length != 2) {
+			// Drew too many or too few cards
+			return false;
+			
+		}
+		if (veryBadCards.indexOf(charCards[0]) != -1 || veryBadCards.indexOf(charCards[1]) != -1) {
+			// Drew a card that shouldn't be possible
+			return false;
+		}			
+	}
+	
 	updateCardsAndEffects(charId, charEffectsId, charCards, charCardEffects)
+	return true;
 }
 
 function flipCoin() {

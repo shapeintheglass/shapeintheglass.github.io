@@ -192,6 +192,7 @@ var cellIdConcat = "-";
 var numBadTrials = 0;
 var numWishTrials = 0;
 var numBossTrials = 0;
+var numBcsTrials = 0;
 
 function onMontecarloClick() {
 	resetDeck();
@@ -203,6 +204,7 @@ function onMontecarloClick() {
 		var veryBadDrawn = false;
 		var wishDrawn = false;
 		var bossDrawn = false;
+		var numGoodCardsDrawn = 0;
 		for (var charNameIndex = 0; charNameIndex < numChars; charNameIndex++) {
 			var cards = allCharCards[charNameIndex];
 			for (var c = 0; c < cards.length; c++) {
@@ -218,6 +220,9 @@ function onMontecarloClick() {
 				if (!bossDrawn && (cards[c] == "flames" || cards[c] == "skull")) {
 					bossDrawn = true;
 				}
+				if (charNameIndex != 0 && goodCards.indexOf(cards[c]) != -1) {
+					numGoodCardsDrawn++;
+				}
 			}
 		}
 		if (veryBadDrawn) {
@@ -228,6 +233,9 @@ function onMontecarloClick() {
 		}
 		if (bossDrawn) {
 			numBossTrials++;
+		}
+		if (numGoodCardsDrawn >= 8) {
+			numBcsTrials++;
 		}
 	}
 	showMonteCarloData(numTrials);
@@ -266,6 +274,8 @@ function showMonteCarloData(numTrials) {
 	document.getElementById("num-wish-trials").innerHTML = wishPercent
 	var bossPercent = Math.floor(numBossTrials / numTrials * 100)
 	document.getElementById("num-boss-trials").innerHTML = bossPercent
+	var bcsPercent = numBcsTrials / numTrials * 100
+	document.getElementById("num-bcs-trials").innerHTML = bcsPercent
 }
 
 function resetMCUI() {
@@ -278,6 +288,7 @@ function resetMCUI() {
 	numBadTrials = 0;
 	numWishTrials = 0;
 	numBossTrials = 0;
+	numBcsTrials = 0;
 	document.getElementById("header-row").innerHTML = "";
 	for (var i = 0; i < numChars; i++) {
 		var elementName = characters[i].concat(rowIdSuffix);

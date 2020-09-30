@@ -1,0 +1,10 @@
+.bad {
+	color: red;
+}
+.good {
+	color: green;
+}
+.verybad {
+	color: red;
+	font-weight: bold;
+}

@@ -93,8 +93,18 @@ function updateCardsAndEffects(charId, charEffectsId, charCards, charCardEffects
 	var cardsCell = document.getElementById(charId)
 	var cardsList = "<ol>";
 	for (var i = 0; i < numCards; i++) {
-		cardsList = cardsList.concat("<li>")
-		cardsList = cardsList.concat(charCards[i])
+		var card = charCards[i]
+		// Decide text color to convey 'badness' of outcome
+		if (badCards.indexOf(card) != -1) {
+			cardsList = cardsList.concat("<li class='bad'>")
+		} else if (goodCards.indexOf(card) != -1) {
+			cardsList = cardsList.concat("<li class='good'>")
+		} else if (veryBadCards.indexOf(card) != -1) {
+			cardsList = cardsList.concat("<li class='verybad'>")
+		} else {
+			cardsList = cardsList.concat("<li class='neutral'>")
+		}
+		cardsList = cardsList.concat(card)
 		cardsList = cardsList.concat("</li>")
 	}
 	cardsList = cardsList.concat("</ol>")

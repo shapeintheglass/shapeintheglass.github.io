@@ -42,6 +42,7 @@ function generateScenario() {
 }
 
 function drawCards(charId) {
+	var isCern = charId == 0;
 	var numCards = charsDraws[charId];
 	var charCards = [];
 	var charCardEffects = [];
@@ -60,27 +61,26 @@ function drawCards(charId) {
 			return false;
 		}
 		// Determine if additional cards can be drawn
-		if (card == "jester" && flipCoin()) {
+		if (!isCern && card == "jester" && flipCoin()) {
 			numCards = numCards + 2;
 			cardEffect = cardEffect.concat(" (two add'l cards drawn due to jester)")
 		}
-		if (card == "idiot" && flipCoin()) {
+		if (!isCern && card == "idiot" && flipCoin()) {
 			numCards = numCards + 1;
 			cardEffect = cardEffect.concat(" (one add'l card drawn due to idiot)")
 		}
 		if (card == "fool") {
-			numCards = numCards + 1;
-			cardEffect = cardEffect.concat(" (one add'l card drawn due to fool)")
-			// Hack for Cern- if this is his first card, reduce his intent to one
-			if (charId == 0) {
-				numCards = 1;
+			// Hack for Cern- if he gets this card, don't redraw
+			if (!isCern) {
+				numCards = numCards + 1;
 			}
+			cardEffect = cardEffect.concat(" (one add'l card drawn due to fool)")
 		}
 		charCards.push(card)
 		charCardEffects.push(cardEffect)
 	}
 	// Special case for Cern- he can only have drawn 2 cards and neither of them are void or donjon
-	if (charId == 0) {
+	if (isCern) {
 		if (charCards.length != 2) {
 			// Drew too many or too few cards
 			return false;

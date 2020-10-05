@@ -1,3 +1,4 @@
+<title>Dungeons and Daddies Episode 43 Party Pooper</title>
 <script src="domt.js"></script>
 <link rel="stylesheet" type="text/css" href="domt.css">
 
@@ -58,13 +59,13 @@
 	
 	<h2>Monte Carlo simulation</h2>
 	
-	<p>This runs a large number of scenarios and calculates the percentage of times that each character recieved a specific card. A larger number of trials will be more "accurate" but will take longer to compute.</p>
+	<p>This runs a large number of scenarios and calculates the percentage of times that each character recieved a specific card. A larger number of trials will be more accurate but will take longer to compute.</p>
 	
 	<div class="btn2">Number of trials: <input id="trials" type="number" value="10000"></input><button type="button" onclick="onMontecarloClick()">Go</button><button type="button" onclick="resetMCUI()">Clear</button></div>
 	<br/>
 	
 	<p>
-	This chart shows the % of trials (rounded to the nearest percent) in which a particular character recieved a particular card. The totals won't add up to 100% since not all cards will be drawn in every trial.
+	This chart shows the % of trials (rounded to the nearest percent) in which a particular character received a particular card.
 	</p>
 	<table>
 		<tr id="header-row">
@@ -93,9 +94,8 @@
 	<p>Since some rules are up to interpretation, use these options to change how the outcomes are determined. These rules will apply to scenarios in both the individual scenario generator and the Monte Carlo simulation.</p>
 
 	<h2>How card effects are decided:</h2>
-	<p>Normally, when a character pulls from a deck of many things, cards are drawn one at a time. This removes ambiguity in situations where a character could draw cards with mutually exclusive effects. By default this page assumes that cards are evaluated in the traditional way.
-		This means that if donjon is drawn first, this nullifies the effect of all other cards since the player cannot act after that point. However, if all cards can take effect simultaneously, then potentially the player or DM could decide for donjon to take effect last.
-	</p>
+	<p>Normally, cards are drawn one at a time from a deck of many things. This removes ambiguity in situations where a character could draw cards with mutually exclusive effects. By default, this page assumes that cards are evaluated in the traditional way.</p>
+	<p>Going by traditional rules, if donjon is drawn first, this nullifies the effect of all other cards since the player cannot act after that point. However, if all cards can take effect simultaneously, then potentially the player or DM could decide what order things should be processed in.</p>
 
 	<input type="radio" id="ruleset-seq" name="ruleset" value="seq" checked>
 	<label for="ruleset-seq">Cards take effect sequentially (ex. drawing void will mean all unread cards in hand are moot)</label><br>
@@ -104,7 +104,7 @@
 	<br/>
 
 	<h2>Whether to draw extra cards:</h2>
-	<p>Jester and idiot allow the player to choose whether to draw more cards. These options can be used to see if a particular strategy would work more to their advantage.</p>
+	<p>Jester and Idiot allow the player to choose whether to draw more cards. These options can be used to see if a particular strategy would work more to their advantage.</p>
 	<input type="radio" id="ruleset-sometimespull" name="drawrules" value="sometimespull" checked>
 	<label for="ruleset-sometimespull">50/50 chance to draw extra cards</label><br>
 	<input type="radio" id="ruleset-alwayspull" name="drawrules" value="alwayspull">
@@ -114,19 +114,21 @@
 	<br/>
 
 	<h2>The effect of moon or fates:</h2>
-	<p>One metagame strategy would be to ensure drawing the Moon or Fates cards, which, with creative thinking, would likely allow the players to prevent drawing from the deck in the first place. If we assume that everything will be ok once Moon/Fates is drawn, then we can disregard all other cards after that point.</p>
+	<p>One metagame strategy would be to ensure drawing the Moon or Fates cards, which, with creative thinking, would likely allow the players to prevent drawing from the deck in the first place. If we assume that everything will be ok once Moon/Fates is drawn, then we can disregard all other cards after that point.
+		This option can be used to take into account that once Moon or Fates appear, anything can happen.
+	</p>
 
 	<input type="radio" id="ruleset-nowish" name="wishrules" value="nowish" checked>
-	<label for="ruleset-nowish">Do not stop drawing if Moon/Fates are drawn</label><br>
+	<label for="ruleset-nowish">Do not stop simulation if Moon/Fates are drawn</label><br>
 	<input type="radio" id="ruleset-yeswish" name="wishrules" value="yeswish">
-	<label for="ruleset-yeswish">Stop drawing if Moon/Fates are drawn</label><br>
+	<label for="ruleset-yeswish">Stop simulation if Moon/Fates are drawn</label><br>
 	<br/>
 
-	<p>Notes: 
+	<h3>Notes:</h3> 
 	<ul>
 	<li>In this version of the deck, all cards that have already been pulled are destroyed. This applies to the Gem and Throne cards. However, all other cards in the standard 22 card deck are assumedly viable.</li>
-	<li>Under normal circumstances, if donjon or void are drawn, the character would immediately be imprisoned and would be unable to draw futher cards. However, since all characters drew their cards simultaneously, this could be up to interpretation.</li>
+	<li>If donjon or void are drawn, the character is immediately imprisoned unable to act. Under normal cirumstances, this would also prevent them from drawing more cards.</li>
 	<li>If talon is drawn, this destroys all magic items in the character's possession, which should include the other cards they are holding.</li>
 	<li>Cern can only draw two cards total, and neither of them can be donjon, void, or talon. If Cern gets an invalid hand, the scenario is retried.</li>
-	</ul></p>
+	</ul>
 </body>

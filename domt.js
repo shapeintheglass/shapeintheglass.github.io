@@ -100,7 +100,9 @@ function drawCards(charId, skipDiscarded = false) {
 						shouldDiscard = true;
 						discardReason = " (nullified due to ".concat(card).concat(")");
 					} else {
-						cardEffect = cardEffect.concat(" <span class='special-effect'>(imprisoned!)</span>")
+						if (card != "talon") {
+							cardEffect = cardEffect.concat(" <span class='special-effect'>(imprisoned!)</span>")
+						}
 					}
 					break;
 				// Cards that have a chance of drawing 2 more cards

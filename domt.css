@@ -18,6 +18,10 @@ table, th, td {
 	width: 400px;
 	margin: auto;
 }
+.btn3 {
+	width: 400px;
+	margin: auto;
+}
 .bad {
 	color: red;
 }
@@ -28,6 +32,16 @@ table, th, td {
 	color: red;
 	font-weight: bold;
 }
+.verygood {
+	color: green;
+	font-weight: bold;
+}
 .centered {
 	text-align: center;
+}
+.gray {
+	background-color: #DCDCDC;
+}
+.special-effect {
+	font-weight: bold;
 }

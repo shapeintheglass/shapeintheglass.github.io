@@ -1,14 +1,15 @@
-
-var goodCards = ["fates", "jester", "key", "knight", "moon", "star", "sun", "vizier"]
-var goodCardsEffects = ["erase one event", "gain 10000 xp OR draw two more cards", "get a weapon", "gain a fighter ally", "cast wish 1d3 times", "increase one ability by 2", "gain 50000 xp and a wondrous item", "have a question answered truthfully"]
+var veryGoodCards = ["fates", "moon"]
+var veryGoodCardsEffects = ["erase one event", "cast wish 1d3 times"]
+var goodCards = ["jester", "key", "knight", "star", "sun", "vizier"]
+var goodCardsEffects = ["gain 10000 xp or draw two more cards", "get a weapon", "gain a fighter ally", "increase one ability by 2", "gain 50000 xp and a wondrous item", "have a question answered truthfully"]
 var neutralCards = ["comet"]
 var neutralCardsEffects = ["if you singlehandedly defeat the next encounter, you gain a level"]
 var badCards = ["balance", "euryale", "flames", "fool", "idiot", "rogue", "ruin", "skull", "talon"]
 var badCardsEffects = ["alignment is switched. lawful <--> chaotic, good <--> evil", "cursed with -2 penalty on saving throws", "a devil becomes your enemy until you or it dies", "lose 10000 xp and draw again", "reduce intelligence by 1d4 + 1, but you can draw one additional card", "an NPC somewhere becomes hostile", "all forms of wealth (other than magic) are lost", "must singlehandedly defeat an avatar of death", "all magic items worn or carried disintegrate"]
 var veryBadCards = ["donjon", "void"]
 var veryBadCardsEffects = ["become entombed in an extradimensional sphere. cannot draw further cards", "soul contained in an object in a place of the DM's choice. cannot draw further cards"]
-var allCards = goodCards.concat(neutralCards, badCards, veryBadCards)
-var allCardsEffects = goodCardsEffects.concat(neutralCardsEffects, badCardsEffects, veryBadCardsEffects)
+var allCards = veryGoodCards.concat(goodCards, neutralCards, badCards, veryBadCards)
+var allCardsEffects = veryGoodCardsEffects.concat(goodCardsEffects, neutralCardsEffects, badCardsEffects, veryBadCardsEffects)
 
 var numChars = 5
 var characters = ["cern", "henry", "glenn", "ron", "dog"]
@@ -21,14 +22,29 @@ var currentDeck = [...allCards]
 var allCharCards = []
 var allCharEffects = []
 
+var isSeqRuleset = true;
+
+var drawFiftyFifty = true;
+var alwaysDraw = false;
+
+var stopAtWish = false;
+
 function onGenerateScenarioClick() {
 	onClearClick();
 	generateScenario();
 	setScenarioUI();
 }
 
-function generateScenario() {
+function generateScenario(isMonteCarlo = false) {
 	resetDeck();
+	// Get which ruleset to use
+	isSeqRuleset = document.getElementById('ruleset-seq').checked;
+
+	drawFiftyFifty = document.getElementById('ruleset-sometimespull').checked;
+	alwaysDraw = document.getElementById('ruleset-alwayspull').checked;
+
+	stopAtWish = document.getElementById('ruleset-yeswish').checked;
+	
 	// Roll cards for cern until he gets a valid combination
 	while (!drawCards(0)) {
 		console.log("invalid configuration found for cern, restarting")
@@ -36,50 +52,93 @@ function generateScenario() {
 	}
 	
 	// Draw remaining cards
-	for (var remainingCharIndex = 1; remainingCharIndex < numChars; remainingCharIndex++ ) {
-		drawCards(remainingCharIndex)
+	var skipDiscarded = isSeqRuleset && isMonteCarlo;
+	for (var remainingCharIndex = 1; remainingCharIndex < numChars; remainingCharIndex++) {
+		drawCards(remainingCharIndex, skipDiscarded)
 	}
 }
 
-function drawCards(charId) {
+// Gets cards for a particular character by id.
+function drawCards(charId, skipDiscarded = false) {
 	var isCern = charId == 0;
 	var numCards = charsDraws[charId];
 	var charCards = [];
 	var charCardEffects = [];
+	var shouldDiscard = false;
+	var discardReason = "";
+
 	for (var cardIndex = 0; cardIndex < numCards; cardIndex++) {
-		var card = currentDeck.pop();
-		var cardEffectIndex = allCards.indexOf(card)
-		var cardEffect = allCardsEffects[cardEffectIndex]
-		
-		// Determine if we should stop here
-		if (card == "donjon" || card == "void") {
-			cardEffect = cardEffect.concat(" (no more cards can be drawn)")
-			numCards = 0;
-		}
 		if (currentDeck.length == 0) {
 			console.log("ran out of cards!")
 			return false;
 		}
-		// Determine if additional cards can be drawn
-		if (!isCern && card == "jester" && flipCoin()) {
-			numCards = numCards + 2;
-			cardEffect = cardEffect.concat(" (two add'l cards drawn due to jester)")
+
+		var card = currentDeck.pop();
+
+		if (shouldDiscard && skipDiscarded) {
+			continue;
 		}
-		if (!isCern && card == "idiot" && flipCoin()) {
-			numCards = numCards + 1;
-			cardEffect = cardEffect.concat(" (one add'l card drawn due to idiot)")
-		}
-		if (card == "fool") {
-			// Hack for Cern- if he gets this card, don't redraw
-			if (!isCern) {
-				numCards = numCards + 1;
+
+		var cardEffectIndex = allCards.indexOf(card)
+		var cardEffect = allCardsEffects[cardEffectIndex]
+		
+		var shouldDrawExtraCards = drawFiftyFifty ? flipCoin() : alwaysDraw;
+
+		if (shouldDiscard) {
+			cardEffect = cardEffect.concat(discardReason);
+		} else {
+			// Check for card special cases to determine additional effects
+			switch(card) {
+				// Cards that stop everything
+				case "donjon":
+				case "void":
+				case "talon":
+					if (isSeqRuleset) {
+						cardEffect = cardEffect.concat(" <span class='special-effect'>(all remaining cards are nullified!)</span>")
+						shouldDiscard = true;
+						discardReason = " (nullified due to ".concat(card).concat(")");
+					} else {
+						cardEffect = cardEffect.concat(" <span class='special-effect'>(imprisoned!)</span>")
+					}
+					break;
+				// Cards that have a chance of drawing 2 more cards
+				case "jester":
+					if (!isCern && shouldDrawExtraCards) {
+						numCards = numCards + 2;
+						cardEffect = cardEffect.concat(" <span class='special-effect'>(+2 cards drawn due to jester)</span>")
+					}
+					break;
+				// Cards that have a chance of drawing 1 more card
+				case "idiot":
+					if (!isCern && shouldDrawExtraCards) {
+						numCards = numCards + 2;
+						cardEffect = cardEffect.concat(" <span class='special-effect'>(+1 card drawn due to idiot)</span>")
+					}
+					break;
+				// Cards that force drawing 1 more card
+				case "fool":
+					// Hack for Cern- if he gets this card, don't redraw (treat his first card as the redraw)
+					if (!isCern) {
+						numCards = numCards + 1;
+					}
+					cardEffect = cardEffect.concat(" <span class='special-effect'>(+1 card drawn due to fool)</span>")
+					break;
+				// Cards that fix everything
+				case "moon":
+				case "fates":
+					if (!isCern && stopAtWish) {
+						cardEffect = cardEffect.concat(" <span class='special-effect'>(fate averted!)</span>")
+						numCards = 0;
+						charsDraws = [0, 0, 0, 0, 0];
+					}
+					break;
 			}
-			cardEffect = cardEffect.concat(" (one add'l card drawn due to fool)")
 		}
 		charCards.push(card)
 		charCardEffects.push(cardEffect)
-	}
-	// Special case for Cern- he can only have drawn 2 cards and neither of them are void or donjon
+	} // end for loop
+
+	// Special case for Cern- he can only have drawn 2 cards and neither of them are void or donjon (or talon)
 	if (isCern) {
 		if (charCards.length != 2) {
 			// Drew too many or too few cards
@@ -98,13 +157,7 @@ function drawCards(charId) {
 }
 
 function flipCoin() {
-	if (Math.random() < 0.5) {
-		console.log("coin flipped heads")
-		return true;
-	} else {
-		console.log("coin flipped tails")
-		return false;
-	}
+	return Math.random() < 0.5;
 }
 
 function onClearClick() {
@@ -113,6 +166,7 @@ function onClearClick() {
 }
 
 function resetDeck() {
+	charsDraws = [2, 3, 4, 2, 2]
 	currentDeck = [...allCards]
 	shuffleDeck() 
 	allCharCards = []
@@ -141,19 +195,8 @@ function setScenarioUI() {
 		var cardsCell = document.getElementById(charCardsId)
 		var cardsList = "<ol>";
 		for (var i = 0; i < numCards; i++) {
-			var card = charCards[i]
-			// Decide text color to convey 'badness' of outcome
-			if (badCards.indexOf(card) != -1) {
-				cardsList = cardsList.concat("<li class='bad'>")
-			} else if (goodCards.indexOf(card) != -1) {
-				cardsList = cardsList.concat("<li class='good'>")
-			} else if (veryBadCards.indexOf(card) != -1) {
-				cardsList = cardsList.concat("<li class='verybad'>")
-			} else {
-				cardsList = cardsList.concat("<li class='neutral'>")
-			}
-			cardsList = cardsList.concat(card)
-			cardsList = cardsList.concat("</li>")
+			var cardRowHtml = getCardRowHtml(charCards[i]);
+			cardsList = cardsList.concat(cardRowHtml);
 		}
 		cardsList = cardsList.concat("</ol>")
 		cardsCell.innerHTML = cardsList;
@@ -168,6 +211,43 @@ function setScenarioUI() {
 		cardEffectsList = cardEffectsList.concat("</ol>")
 		cardEffectsCell.innerHTML = cardEffectsList;
 	}
+
+	// Remaining cards and effects
+	var remainingCardsCell = document.getElementById("remaining-cards");
+	var remainingEffectsCell = document.getElementById("remaining-effects");
+	var remainingCountCell = document.getElementById("num-remaining");
+	var remCardsHtml = "<ol>";
+	var remEffectsHtml = "<ol>";
+	for (var i = 0; i < currentDeck.length; i++) {
+		remCardsHtml = remCardsHtml.concat(getCardRowHtml(currentDeck[i]));
+		var cardId = allCards.indexOf(currentDeck[i]);
+		remEffectsHtml = remEffectsHtml.concat("<li>").concat(allCardsEffects[cardId]).concat("</li>");
+	}
+	remCardsHtml = remCardsHtml.concat("</ol>");
+	remEffectsHtml = remEffectsHtml.concat("</ol>");
+
+	remainingCountCell.innerHTML = currentDeck.length;
+	remainingCardsCell.innerHTML = remCardsHtml;
+	remainingEffectsCell.innerHTML = remEffectsHtml;
+}
+
+function getCardRowHtml(card) {
+	var cardRowHtml = "";
+	// Decide text color to convey 'badness' of outcome
+	if (badCards.indexOf(card) != -1) {
+		cardRowHtml = "<li class='bad'>"
+	} else if (goodCards.indexOf(card) != -1) {
+		cardRowHtml = "<li class='good'>"
+	} else if (veryGoodCards.indexOf(card) != -1) {
+		cardRowHtml = "<li class='verygood'>"
+	} else if (veryBadCards.indexOf(card) != -1) {
+		cardRowHtml = "<li class='verybad'>"
+	} else {
+		cardRowHtml = "<li class='neutral'>"
+	}
+	cardRowHtml = cardRowHtml.concat(card)
+	cardRowHtml = cardRowHtml.concat("</li>")
+	return cardRowHtml;
 }
 
 function resetUI() {
@@ -187,33 +267,31 @@ var henryMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 var glennMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-var totalMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var remainingMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
 var rowIdSuffix = "-row";
 var cellIdConcat = "-";
 var numBadTrials = 0;
 var numWishTrials = 0;
 var numBossTrials = 0;
-var numBcsTrials = 0;
 
 function onMontecarloClick() {
 	resetDeck();
 	resetMCUI();
 	var numTrials = document.getElementById("trials").value
 	for (var i = 0; i < numTrials; i++) {
-		generateScenario();
+		generateScenario(true);
 		// Update totals
 		var veryBadDrawn = false;
 		var wishDrawn = false;
 		var bossDrawn = false;
-		var numGoodCardsDrawn = 0;
 		for (var charNameIndex = 0; charNameIndex < numChars; charNameIndex++) {
 			var cards = allCharCards[charNameIndex];
 			for (var c = 0; c < cards.length; c++) {
 				// Get index of card
 				var cardIndex = allCards.indexOf(cards[c]);
 				allData[charNameIndex][cardIndex]++;
-				totalMcData[cardIndex]++;
+
 				if (!veryBadDrawn && (cards[c] == "void" || cards[c] == "donjon")) {
 					veryBadDrawn = true;
 				}
@@ -223,10 +301,11 @@ function onMontecarloClick() {
 				if (!bossDrawn && (cards[c] == "flames" || cards[c] == "skull")) {
 					bossDrawn = true;
 				}
-				if (charNameIndex != 0 && goodCards.indexOf(cards[c]) != -1) {
-					numGoodCardsDrawn++;
-				}
 			}
+		}
+		for (var c = 0; c < currentDeck.length; c++) {
+			var cardIndex = allCards.indexOf(currentDeck[c]);
+			remainingMcData[cardIndex]++;
 		}
 		if (veryBadDrawn) {
 			numBadTrials++;
@@ -236,9 +315,6 @@ function onMontecarloClick() {
 		}
 		if (bossDrawn) {
 			numBossTrials++;
-		}
-		if (numGoodCardsDrawn >= 8) {
-			numBcsTrials++;
 		}
 	}
 	showMonteCarloData(numTrials);
@@ -271,16 +347,16 @@ function showMonteCarloData(numTrials) {
 		document.getElementById(charRowName).innerHTML = rowHtml;
 	}
 	
-	var totalsRowHtml = "<td>Totals</td>";
+	var remainingRowHtml = "<td><i>Not drawn</i></td>";
 	for (var cardId = 0; cardId < allCards.length; cardId++) {
 		var cellHtml = "<td>"
 		
-		var percent = Math.floor(totalMcData[cardId] / numTrials * 100);
+		var percent = Math.floor(remainingMcData[cardId] / numTrials * 100);
 		cellHtml = cellHtml.concat(percent);
 		cellHtml = cellHtml.concat("%</td>");
-		totalsRowHtml = totalsRowHtml.concat(cellHtml);
+		remainingRowHtml = remainingRowHtml.concat(cellHtml);
 	}
-	document.getElementById("totals-row").innerHTML = totalsRowHtml;
+	document.getElementById("remaining-row").innerHTML = remainingRowHtml;
 	
 	var veryBadPercent = Math.floor(numBadTrials / numTrials * 100)
 	document.getElementById("num-bad-trials").innerHTML = veryBadPercent
@@ -288,8 +364,6 @@ function showMonteCarloData(numTrials) {
 	document.getElementById("num-wish-trials").innerHTML = wishPercent
 	var bossPercent = Math.floor(numBossTrials / numTrials * 100)
 	document.getElementById("num-boss-trials").innerHTML = bossPercent
-	var bcsPercent = numBcsTrials / numTrials * 100
-	document.getElementById("num-bcs-trials").innerHTML = bcsPercent
 }
 
 function resetMCUI() {
@@ -298,12 +372,11 @@ function resetMCUI() {
 	glennMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	ronMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	dogMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-	totalMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	remainingMcData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	allData = [cernMcData, henryMcData, glennMcData, ronMcData, dogMcData];
 	numBadTrials = 0;
 	numWishTrials = 0;
 	numBossTrials = 0;
-	numBcsTrials = 0;
 	document.getElementById("header-row").innerHTML = "";
 	for (var i = 0; i < numChars; i++) {
 		var elementName = characters[i].concat(rowIdSuffix);

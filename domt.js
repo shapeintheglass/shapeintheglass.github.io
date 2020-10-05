@@ -115,7 +115,7 @@ function drawCards(charId, skipDiscarded = false) {
 				// Cards that have a chance of drawing 1 more card
 				case "idiot":
 					if (!isCern && shouldDrawExtraCards) {
-						numCards = numCards + 2;
+						numCards = numCards + 1;
 						cardEffect = cardEffect.concat(" <span class='special-effect'>(+1 card drawn due to idiot)</span>")
 					}
 					break;

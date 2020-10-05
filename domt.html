@@ -11,7 +11,6 @@
 		<button type="button" onclick="onGenerateScenarioClick()">Generate</button>
 		<button type="button" onclick="onClearClick()">Clear</button>
 	</div>
-	<p></p>
 	<table>
 		<tr>
 			<th>Character</th>
@@ -69,6 +68,7 @@
 	<p>This runs a large number of scenarios and calculates the percentage of times that each character recieved a specific card. A larger number of trials will be more accurate but will take longer to compute.</p>
 	
 	<div class="btn2">Number of trials: <input id="trials" type="number" value="10000"></input><button type="button" onclick="onMontecarloClick()">Go</button><button type="button" onclick="resetMCUI()">Clear</button></div>
+	<p><span id="loading-text"></span></p>
 	<br/>
 	
 	<p>
@@ -101,6 +101,26 @@
 
 	<p>Average number of cards remaining in trials where moon or fate were not drawn: <span id="avg-cards-remaining-nowish">0</span></p>
 	
+
+	<p>Raw counts for nerds:</p>
+
+	<table>
+		<tr id="header-raw">
+		</tr>
+		<tr id="cern-raw">
+		</tr>
+		<tr id="henry-raw">
+		</tr>
+		<tr id="glenn-raw">
+		</tr>
+		<tr id="ron-raw">
+		</tr>
+		<tr id="dog-raw">
+		</tr>
+		<tr class="gray" id="remaining-raw">
+		</tr>
+	</table>
+
 	<h1>Modifiers</h1>
 	<p>Since some rules are up to interpretation, use these options to change how the outcomes are determined. These rules will apply to scenarios in both the individual scenario generator and the Monte Carlo simulation.</p>
 

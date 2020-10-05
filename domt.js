@@ -344,33 +344,50 @@ function showMonteCarloData(numTrials) {
 		headerHtml = headerHtml.concat("</th>");
 	}
 	document.getElementById("header-row").innerHTML = headerHtml;
+	document.getElementById("header-raw").innerHTML = headerHtml;
 	
 	for (var charId = 0; charId < numChars; charId++) {
 		var charRowName = characters[charId].concat(rowIdSuffix);
+		var charRawName = characters[charId].concat("-raw")
 		var rowHtml = "<td>"
+		var rawHtml = "<td>"
 		rowHtml = rowHtml.concat(humanReadableNames[charId]);
 		rowHtml = rowHtml.concat("</td>");
+		rawHtml = rawHtml.concat(humanReadableNames[charId]);
+		rawHtml = rawHtml.concat("</td>");
 		var cardCounts = allData[charId];
 		for (var cardIndex = 0; cardIndex < allCards.length; cardIndex++) {
 			rowHtml = rowHtml.concat("<td>");
 			var percent = Math.floor(cardCounts[cardIndex] / numTrials * 100);
 			rowHtml = rowHtml.concat(percent);
 			rowHtml = rowHtml.concat("%</td>");
+
+			rawHtml = rawHtml.concat("<td>");
+			rawHtml = rawHtml.concat(cardCounts[cardIndex]);
+			rawHtml = rawHtml.concat("</td>");
 		}
 		
 		document.getElementById(charRowName).innerHTML = rowHtml;
+		document.getElementById(charRawName).innerHTML = rawHtml;
 	}
 	
 	var remainingRowHtml = "<td><i>Not drawn/<br/>nullified</i></td>";
+	var remainingRawHtml = "<td><i>Not drawn/<br/>nullified</i></td>";
 	for (var cardId = 0; cardId < allCards.length; cardId++) {
 		var cellHtml = "<td>"
+		var cellRawHtml = "<td>"
 		
 		var percent = Math.floor(remainingMcData[cardId] / numTrials * 100);
 		cellHtml = cellHtml.concat(percent);
 		cellHtml = cellHtml.concat("%</td>");
 		remainingRowHtml = remainingRowHtml.concat(cellHtml);
+
+		cellRawHtml = cellRawHtml.concat(remainingMcData[cardId]);
+		cellRawHtml = cellRawHtml.concat("</td>");
+		remainingRawHtml = remainingRawHtml.concat(cellRawHtml);
 	}
 	document.getElementById("remaining-row").innerHTML = remainingRowHtml;
+	document.getElementById("remaining-raw").innerHTML = remainingRawHtml;
 	
 	var veryBadPercent = Math.floor(numBadTrials / numTrials * 100)
 	document.getElementById("num-bad-trials").innerHTML = veryBadPercent

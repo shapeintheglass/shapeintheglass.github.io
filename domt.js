@@ -47,7 +47,9 @@ function generateScenario(isMonteCarlo = false) {
 	
 	// Roll cards for cern until he gets a valid combination
 	while (!drawCards(0)) {
-		console.log("invalid configuration found for cern, restarting")
+		if (!isMonteCarlo) {
+			console.log("invalid configuration found for cern, restarting")
+		}
 		resetDeck();
 	}
 	

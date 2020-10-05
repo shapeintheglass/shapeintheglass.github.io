@@ -194,6 +194,7 @@ function setScenarioUI() {
 		var numCards = charCards.length
 		var charCardsId = characterName.concat(idsSuffix)
 		var charEffectsId = characterName.concat(effectsIdSuffix)
+		var numCellId = characterName.concat("-num")
 		var cardsCell = document.getElementById(charCardsId)
 		var cardsList = "<ol>";
 		for (var i = 0; i < numCards; i++) {
@@ -212,6 +213,9 @@ function setScenarioUI() {
 		}
 		cardEffectsList = cardEffectsList.concat("</ol>")
 		cardEffectsCell.innerHTML = cardEffectsList;
+
+		var numCell = document.getElementById(numCellId);
+		numCell.innerHTML = numCards;
 	}
 
 	// Remaining cards and effects
@@ -355,7 +359,7 @@ function showMonteCarloData(numTrials) {
 		document.getElementById(charRowName).innerHTML = rowHtml;
 	}
 	
-	var remainingRowHtml = "<td><i>Not drawn</i></td>";
+	var remainingRowHtml = "<td><i>Not drawn/<br/>nullified</i></td>";
 	for (var cardId = 0; cardId < allCards.length; cardId++) {
 		var cellHtml = "<td>"
 		

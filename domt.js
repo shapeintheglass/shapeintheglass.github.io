@@ -274,6 +274,8 @@ var cellIdConcat = "-";
 var numBadTrials = 0;
 var numWishTrials = 0;
 var numBossTrials = 0;
+var totalRemaining = 0;
+var totalRemainingWithoutWish = 0;
 
 function onMontecarloClick() {
 	resetDeck();
@@ -286,19 +288,20 @@ function onMontecarloClick() {
 		var wishDrawn = false;
 		var bossDrawn = false;
 		for (var charNameIndex = 0; charNameIndex < numChars; charNameIndex++) {
+			var isCern = charNameIndex == 0;
 			var cards = allCharCards[charNameIndex];
 			for (var c = 0; c < cards.length; c++) {
 				// Get index of card
 				var cardIndex = allCards.indexOf(cards[c]);
 				allData[charNameIndex][cardIndex]++;
 
-				if (!veryBadDrawn && (cards[c] == "void" || cards[c] == "donjon")) {
+				if (!isCern && !veryBadDrawn && (cards[c] == "void" || cards[c] == "donjon")) {
 					veryBadDrawn = true;
 				}
-				if (!wishDrawn && (cards[c] == "moon" || cards[c] == "fates")) {
+				if (!isCern && !wishDrawn && (cards[c] == "moon" || cards[c] == "fates")) {
 					wishDrawn = true;
 				}
-				if (!bossDrawn && (cards[c] == "flames" || cards[c] == "skull")) {
+				if (!isCern && !bossDrawn && (cards[c] == "flames" || cards[c] == "skull")) {
 					bossDrawn = true;
 				}
 			}
@@ -307,11 +310,14 @@ function onMontecarloClick() {
 			var cardIndex = allCards.indexOf(currentDeck[c]);
 			remainingMcData[cardIndex]++;
 		}
+		totalRemaining += currentDeck.length;
 		if (veryBadDrawn) {
 			numBadTrials++;
 		}
 		if (wishDrawn) {
 			numWishTrials++;
+		} else {
+			totalRemainingWithoutWish += currentDeck.length;
 		}
 		if (bossDrawn) {
 			numBossTrials++;
@@ -364,6 +370,10 @@ function showMonteCarloData(numTrials) {
 	document.getElementById("num-wish-trials").innerHTML = wishPercent
 	var bossPercent = Math.floor(numBossTrials / numTrials * 100)
 	document.getElementById("num-boss-trials").innerHTML = bossPercent
+	var avgNumRemaining = Math.ceil(totalRemaining / numTrials)
+	document.getElementById("avg-cards-remaining").innerHTML = avgNumRemaining;
+	var avgNumRemainingWoWish = Math.ceil(totalRemainingWithoutWish / (numTrials - numWishTrials))
+	document.getElementById("avg-cards-remaining-nowish").innerHTML = avgNumRemainingWoWish;
 }
 
 function resetMCUI() {
@@ -377,6 +387,8 @@ function resetMCUI() {
 	numBadTrials = 0;
 	numWishTrials = 0;
 	numBossTrials = 0;
+	totalRemaining = 0;
+	totalRemainingWithoutWish = 0;
 	document.getElementById("header-row").innerHTML = "";
 	for (var i = 0; i < numChars; i++) {
 		var elementName = characters[i].concat(rowIdSuffix);

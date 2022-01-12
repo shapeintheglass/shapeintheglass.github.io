@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Two's Complement Converter</title>
+        <script src="twoscomplement.js"></script>
+        <link rel="stylesheet" type="text/css" href="twoscomplement.css">
+    </head>
+
+
+<body>
+    <div class="centered">
+        <div class="title">
+            Two's complement converter (64 bit)
+        </div>
+
+        <div>
+            Enter signed 64 bit integers on a new line each, then click "Convert" to convert each of them to their two's complement equivalent.
+        </div>
+    
+        <div>
+            <textarea rows=10 cols=100 id="input-toconvert"></textarea>
+        </div>
+        
+        <div>
+            <button onclick="onConvertClick()">
+                Convert
+            </button>
+        </div>
+        
+    
+        <div>
+            <textarea rows=10 cols=100 id="input-converted" readonly></textarea>
+        </div>
+    </div>
+
+    
+</body>
+</html>

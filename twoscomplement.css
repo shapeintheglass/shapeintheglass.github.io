@@ -1,0 +1,22 @@
+body {
+	width: 1000px;
+	margin: auto;
+	font-family: sans-serif;
+}
+.centered {
+	text-align: center;
+}
+.title {
+    display: block;
+    font-size: 2em;
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+input[type=text] {
+    width: 50%;
+    margin: 8px 0;
+    box-sizing: border-box;
+  }

@@ -2,61 +2,42 @@
 
 const e = React.createElement;
 
-class ParseButton extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { liked: false };
-  }
-
-  render() {
-    //if (this.state.liked) {
-    //  return 'You liked this.';
-    //}
-
-    return e(
-      'button',
-      { onClick: () => 
-        parseJson()
-      },
-      'Parse'
-    );
-  }
+function insertCell(row, value)
+{
+  let cell = row.insertCell();
+  cell.innerHTML = value;
+  cell.setAttribute("class", "mdc-data-table__cell");
 }
 
-function visualizeJson(jsonObj)
+function populateTable(jsonObj)
 {
-  var toPrint = "";
-
-  toPrint += "<h1>";
-  toPrint += jsonObj.Name;
-  toPrint += "</h1>";
+  const table = document.getElementById("datatablebody");
+  table.innerHTML = "";
   for (var i = 0; i < jsonObj.SubChunks.length; i++) {
     var subchunk = jsonObj.SubChunks[i];
-    toPrint += "<h2>"
-    toPrint += subchunk.Name;
-    toPrint += "</h2><br>";
+    var subchunkName = subchunk.Name;
     
     for (var j = 0; j < subchunk.Lines.length; j++) {
       var line = subchunk.Lines[j];
-      toPrint += String(line.Spkr).toUpperCase() + "<br>";
-      toPrint += line.Txt;
-      toPrint += "<br><br>";
+      let row = table.insertRow();
+      row.setAttribute("class", "mdc-data-table__row");
+      row.setAttribute("data-row-id", line.Id);
+      insertCell(row, subchunkName);
+      insertCell(row, line.Evt);
+      insertCell(row, line.Txt);
+      insertCell(row, line.Spkr);
+      insertCell(row, line.Trgt);
+      insertCell(row, line.Id);
+      insertCell(row, line.Dscr);
+      insertCell(row, line.Snd);
+      insertCell(row, line.Cmt);
+      insertCell(row, line.Loc);
     }
   }
-  
-  return toPrint;
 }
 
 function parseJson() {
-  var  jsonInput = document.getElementById("textarea").value;
-  
+  var jsonInput = document.getElementById("textarea").value;
   var jsonObj = JSON.parse(jsonInput);
-  
-  var toPrint = visualizeJson(jsonObj);
-
-  document.getElementById("output").innerHTML = toPrint;
+  populateTable(jsonObj);
 }
-
-const domContainer = document.querySelector('#button_container');
-const root = ReactDOM.createRoot(domContainer);
-root.render(e(ParseButton));

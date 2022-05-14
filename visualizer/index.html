@@ -32,6 +32,10 @@
         font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
       }
     </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-table@6.8.6/react-table.js"></script>
+    <script src="parser.js"></script>
   </head>
   <body class="mdc-typography">
     <label class="mdc-text-field mdc-text-field--filled mdc-text-field--textarea mdc-text-field--no-label">
@@ -405,11 +409,25 @@
       <span class="mdc-line-ripple"></span>
     </label>
 
-    <button class="mdc-button mdc-button--raised">
-      <span class="mdc-button__label" onClick="parseJson()">Parse</span>
+    <button class="mdc-button mdc-button--raised" onClick="populateTable()">
+      <span class="mdc-button__label">Import</span>
+    </button>
+    <button class="mdc-button mdc-button--raised" onClick="populateTextArea()">
+      <span class="mdc-button__label">Export</span>
     </button>
     
-    <div id="output"></div>
+    <table>
+     <thead>
+       <tr>
+         <th></th>
+       </tr>
+     </thead>
+     <tbody>
+       <tr>
+         <td></td>
+       </tr>
+     </tbody>
+   </table>
     
     <div class="mdc-data-table">
       <div class="mdc-data-table__table-container">
@@ -436,8 +454,6 @@
       </div>
     </div>
 
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="parser.js"></script>
+    
   </body>
 <html>

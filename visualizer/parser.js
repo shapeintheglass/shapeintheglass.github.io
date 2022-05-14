@@ -27,7 +27,7 @@ function insertCell(row, subchunkIndex, lineIndex, fieldName) {
   if (fieldName == "Evt") {
     input.style = "width:100px";
   }
-  if (fieldName == "Txt") {
+  if (fieldName == "Txt" || fieldName == "Cmt") {
     input.style = "width:1000px";
   }
   input.addEventListener('change', updateJsonListener);

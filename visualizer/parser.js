@@ -2,13 +2,36 @@
 
 var jsonObj;
 var subchunkIndex;
+
+// Column order
 const columnList = ["Dupe", "AddBelow", "AddAbove", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Loc", "Obj1", "Obj2", "Clr"];
 
-const iconDupeSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
-const iconAddRowAfterSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
-const iconAddRowBeforeSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,14A2,2 0 0,0 20,12H4A2,2 0 0,0 2,14V21H4V19H8V21H10V19H14V21H16V19H20V21H22V14M4,14H8V17H4V14M10,14H14V17H10V14M20,14V17H16V14H20M11,10H13V7H16V5H13V2H11V5H8V7H11V10Z" /></svg>`;
-const iconRemoveRowSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M9.41,13L12,15.59L14.59,13L16,14.41L13.41,17L16,19.59L14.59,21L12,18.41L9.41,21L8,19.59L10.59,17L8,14.41L9.41,13M22,9A2,2 0 0,1 20,11H4A2,2 0 0,1 2,9V6A2,2 0 0,1 4,4H20A2,2 0 0,1 22,6V9M4,9H8V6H4V9M10,9H14V6H10V9M16,9H20V6H16V9Z" /></svg>`;
-const iconSortSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z" /></svg>`;
+const iconDupeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
+const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
+const iconAddRowBeforeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,14A2,2 0 0,0 20,12H4A2,2 0 0,0 2,14V21H4V19H8V21H10V19H14V21H16V19H20V21H22V14M4,14H8V17H4V14M10,14H14V17H10V14M20,14V17H16V14H20M11,10H13V7H16V5H13V2H11V5H8V7H11V10Z" /></svg>`;
+const iconRemoveRowSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M9.41,13L12,15.59L14.59,13L16,14.41L13.41,17L16,19.59L14.59,21L12,18.41L9.41,21L8,19.59L10.59,17L8,14.41L9.41,13M22,9A2,2 0 0,1 20,11H4A2,2 0 0,1 2,9V6A2,2 0 0,1 4,4H20A2,2 0 0,1 22,6V9M4,9H8V6H4V9M10,9H14V6H10V9M16,9H20V6H16V9Z" /></svg>`;
+const iconSortSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z" /></svg>`;
+
+// Map of column id to readable header name
+const columnNames = {
+  "Dupe": "",
+  "AddBelow": "",
+  "AddAbove": "",
+  "Del": "",
+  "Obj1": "Object 1",
+  "Obj2": "Object 2",
+  "LineId": "Index",
+  "Evt": "Event",
+  "Txt": "Text",
+  "Spkr": "Speaker",
+  "Trgt": "Target",
+  "Id": "ID",
+  "Dscr": "Actions",
+  "Snd": "Sound",
+  "Cmt": "Comment",
+  "Loc": "Localize",
+  "Clr": "Color"
+};
 
 // Shamelessly copied from stackoverflow, determines if a string is valid JSON
 function isJsonString(str) {
@@ -35,26 +58,7 @@ window.onload = function () {
   }
 }
 
-var columnNames = {
-  "Dupe": "",
-  "AddBelow": "",
-  "AddAbove": "",
-  "Del": "",
-  "Obj1": "Object 1",
-  "Obj2": "Object 2",
-  "LineId": "Index",
-  "Evt": "Event",
-  "Txt": "Text",
-  "Spkr": "Speaker",
-  "Trgt": "Target",
-  "Id": "ID",
-  "Dscr": "Actions",
-  "Snd": "Sound",
-  "Cmt": "Comment",
-  "Loc": "Localize",
-  "Clr": "Color"
-};
-
+// Adds a cell to the header
 function insertHeaderCell(row, name) {
   let cell = document.createElement("th");
   cell.setAttribute("class", "mdc-data-table__header-cell");
@@ -76,8 +80,10 @@ function insertHeaderCell(row, name) {
   row.appendChild(cell);
 }
 
+// Adds the table header
 function insertHeader() {
   var headerRow = document.getElementById("headerrow");
+  headerRow.innerHTML = "";
   columnList.forEach(e => {
     insertHeaderCell(headerRow, columnNames[e]);
   });
@@ -95,35 +101,17 @@ function insertDuplicateCell(row, lineIndex) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconDupeSvg;
-  cell.subchunkIndex = subchunkIndex;
-  cell.lineIndex = lineIndex;
   cell.title = "Duplicate this row";
-  cell.addEventListener('click', duplicateRowListener);
+  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Dupe"));
 }
-
-function duplicateRowListener() {
-  console.log(`duplicating line at subchunk index ${this.subchunkIndex}, line ${this.lineIndex}`);
-  var currLine = jsonObj.SubChunks[this.subchunkIndex].Lines[this.lineIndex];
-  jsonObj.SubChunks[this.subchunkIndex].Lines.splice(this.lineIndex, 0, currLine);
-  populateTable();
-}
-
 
 // Inserts a special cell that inserts a new row when clicked
 function insertAddAboveCell(row, lineIndex) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconAddRowBeforeSvg;
-  cell.subchunkIndex = subchunkIndex;
-  cell.lineIndex = lineIndex;
   cell.title = "Add row above";
-  cell.addEventListener('click', addAboveRowListener);
-}
-
-function addAboveRowListener() {
-  console.log(`adding line at subchunk index ${this.subchunkIndex}, line ${this.lineIndex}`);
-  jsonObj.SubChunks[this.subchunkIndex].Lines.splice(this.lineIndex, 0, {});
-  populateTable();
+  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddAbove"));
 }
 
 // Inserts a special cell that inserts a new row when clicked
@@ -131,16 +119,8 @@ function insertAddBelowCell(row, lineIndex) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconAddRowAfterSvg;
-  cell.subchunkIndex = subchunkIndex;
-  cell.lineIndex = lineIndex;
   cell.title = "Add row below";
-  cell.addEventListener('click', addBelowRowListener);
-}
-
-function addBelowRowListener() {
-  console.log(`adding line at subchunk index ${this.subchunkIndex}, line ${this.lineIndex}`);
-  jsonObj.SubChunks[this.subchunkIndex].Lines.splice(this.lineIndex + 1, 0, {});
-  populateTable();
+  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddBelow"));
 }
 
 // Inserts a special cell that removes the current row when clicked
@@ -148,31 +128,62 @@ function insertRemoveCell(row, lineIndex) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconRemoveRowSvg;
-  cell.subchunkIndex = subchunkIndex;
-  cell.lineIndex = lineIndex;
   cell.title = "Delete row";
-  cell.addEventListener('click', removeRowListener);
+  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Del"));
 }
 
-// Listener for removing a cell
-function removeRowListener() {
-  console.log(`removing line at subchunk index ${this.subchunkIndex}, line ${this.lineIndex}`);
-  jsonObj.SubChunks[this.subchunkIndex].Lines.splice(this.lineIndex, 1);
+// Performs the given action on the underlying json and redraws the data table
+function mutateTable(subchunkIndex, lineIndex, action) {
+  console.log(`Mutating w/ action ${action} on ${subchunkIndex}, ${lineIndex}`);
+  switch (action) {
+    case "AddAbove":
+      jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 0, {});
+      break;
+    case "AddBelow":
+      jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex + 1, 0, {});
+      break;
+    case "Del":
+      jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 1);
+      break;
+    case "Dupe":
+      var currLine = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex];
+      jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 0, currLine);
+      break;
+  }
   populateTable();
 }
 
+// Inserts a special color selector cell
+function insertColorCell(row, lineIndex) {
+  let cell = row.insertCell();
+  cell.setAttribute("class", "mdc-data-table__cell");
+  const input = document.createElement("input");
+  var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"];
+  input.setAttribute("type", "color");
+  input.value = value;
+  input.addEventListener('change', input => {
+    let value = input.target?.value;
+    if (value == undefined || value == "#000000") {
+      console.log(`removing color of subchunk ${subchunkIndex} line ${lineIndex}`);
+      delete jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"];
+    } else {
+      console.log(`updating color of subchunk ${subchunkIndex} line ${lineIndex} to ${value}`);
+      jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"] = value;
+    }
+
+    populateTable();
+  });
+  cell.appendChild(input);
+}
+
 // Inserts an editable cell
-function insertCell(row, lineIndex, fieldName) {
+function insertEditableCell(row, lineIndex, fieldName) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
   const input = document.createElement("textarea");
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
 
-  //input.type = "text";
-  input.subchunkIndex = subchunkIndex;
-  input.lineIndex = lineIndex;
-  input.fieldName = fieldName;
   if (fieldName == "Evt" || fieldName == "Trgt" || fieldName == "Spkr") {
     input.style = "width:300px";
   }
@@ -182,20 +193,18 @@ function insertCell(row, lineIndex, fieldName) {
   if (fieldName == "Txt" || fieldName == "Cmt") {
     input.style = "width:500px";
   }
-  input.addEventListener('change', updateJsonListener);
+  input.addEventListener('change', input => {
+    let newValue = input.target?.value;
+    console.log(`updating subchunk index ${subchunkIndex}, line index ${lineIndex}, field name ${fieldName} from "${value}" to "${newValue}"`);
+    // Delete the field from the JSON if the cell is cleared
+    if (newValue == "undefined" || newValue == "") {
+      delete jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
+    }
+    else {
+      jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName] = newValue;
+    }
+  });
   cell.appendChild(input);
-}
-
-// Listener for updating the underlying json field when an editable cell is changed
-function updateJsonListener() {
-  console.log(`updating subchunk index ${this.subchunkIndex}, line index ${this.lineIndex}, field name ${this.fieldName} to ${this.value}`);
-  // Delete the field from the JSON if the cell is cleared
-  if (this.value == "" || this.value == "undefined") {
-    delete jsonObj.SubChunks[this.subchunkIndex].Lines[this.lineIndex][this.fieldName];
-  }
-  else {
-    jsonObj.SubChunks[this.subchunkIndex].Lines[this.lineIndex][this.fieldName] = this.value;
-  }
 }
 
 // Listener for updating the cache every time the textarea is changed
@@ -224,8 +233,11 @@ function insertRow(row, lineIndex) {
       case "LineId":
         insertLineIdCell(row, lineIndex);
         break;
+      case "Clr":
+        insertColorCell(row, lineIndex);
+        break;
       default:
-        insertCell(row, lineIndex, e);
+        insertEditableCell(row, lineIndex, e);
     }
   });
 }

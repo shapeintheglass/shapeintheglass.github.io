@@ -1,459 +1,99 @@
-
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Dialogue</title>
-    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
-    <style>
-      .cards {
-        display: flex;
-        flex-wrap: wrap;
-      }
 
-      .element-card {
-        width: 20em;
-        margin: 16px;
-      }
-
-      .element-card > .mdc-card__media {
-        height: 9em;
-      }
-
-      #demo-absolute-fab {
-        position: fixed;
-        bottom: 1rem;
-        right: 1rem;
-        z-index: 1;
-      }
-      #textarea {
-        font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
-      }
-    </style>
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-table@6.8.6/react-table.js"></script>
-    <script src="parser.js"></script>
-  </head>
-  <body class="mdc-typography">
-    <label class="mdc-text-field mdc-text-field--filled mdc-text-field--textarea mdc-text-field--no-label">
-      <span class="mdc-text-field__ripple"></span>
-      <span class="mdc-text-field__resizer">
-        <textarea class="mdc-text-field__input" rows="8" cols="40" aria-label="Label" id="textarea">{
-  "SubChunks": [
-    {
-      "Lines": [
-        {
-          "Evt": "ConvoTestMap:1",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait, addspeakertag:morpheus1a, addspeakertag:morpheus1b",
-          "Id": "Convotestmap_Convo04_ConvoTestMap1_1",
-          "Txt": "At last. Welcome, Neo. As you no doubt have guessed, I am Morpheus.",
-          "Snd": "Afront",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap:2",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait, addspeakertag:morpheus2, removespeakertag:morpheus1a, removespeakertag:morpheus1b",
-          "Id": "Convotestmap_Convo04_ConvoTestMap2_1",
-          "Txt": "I imagine that right now you're feeling a bit like Alice. Tumbling down the rabbit hole? Hm?",
-          "Snd": "Alerted",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap:3",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait, ChooseResponse, removespeakertag:morpheus2",
-          "Id": "Convotestmap_Convo04_ConvoTestMap3_1",
-          "Txt": "I can see it in your eyes. You have the look of a man who accepts what he sees because he is expecting to wake up. Ironically, this is not far from the truth. Do you believe in fate, Neo?",
-          "Snd": "Angry",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap:4",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMap_Branch_01",
-          "Id": "Convotestmap_Convo04_ConvoTestMap4_1",
-          "Txt": "No.",
-          "Snd": "Chatter",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap:4",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMap_Branch_01",
-          "Id": "Convotestmap_Convo04_ConvoTestMap4_2",
-          "Txt": "Ehh, not really.",
-          "Snd": "Concern",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap:4",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMap_Branch_01",
-          "Id": "Convotestmap_Convo04_ConvoTestMap4_3",
-          "Txt": "Not at all!",
-          "Snd": "Cough",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap:4",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMap_Branch_01, Disabled",
-          "Id": "Convotestmap_Convo04_ConvoTestMap4_4",
-          "Txt": "You cannot pick this.",
-          "Snd": "Death",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_Branch_02:1",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo04_ConvoTestMapBranch021_1",
-          "Txt": "I know exactly what you mean. Let me tell you why you're here. You're here because you know something. What you know you can't explain. But you feel it. You've felt it your entire life. That there's something wrong with the world.",
-          "Snd": "Greeting",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_Branch_01:2",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMap_Branch_02",
-          "Id": "Convotestmap_Convo04_ConvoTestMapBranch012_1",
-          "Txt": "Because I don't like the idea that I'm not in control of my life.",
-          "Snd": "Mad",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_Branch_01:1",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait, ChooseResponse",
-          "Id": "Convotestmap_Convo04_ConvoTestMapBranch011_1",
-          "Txt": "Why not?",
-          "Snd": "Pain",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_Branch_02:2",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait, ChooseResponse",
-          "Id": "Convotestmap_Convo04_ConvoTestMapBranch022_1",
-          "Txt": "Do you want to know... what it is?",
-          "Snd": "Puzzled",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_Branch_02:3",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMapYes",
-          "Id": "Convotestmap_Convo04_ConvoTestMapBranch023_1",
-          "Txt": "Yes!",
-          "Snd": "Tired",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_Branch_02:3",
-          "Spkr": "Player",
-          "Trgt": "Morpheus",
-          "Dscr": "Branch:ConvoTestMapNo",
-          "Id": "Convotestmap_Convo04_ConvoTestMapBranch023_2",
-          "Txt": "No",
-          "Snd": "Stinger_Alarmed",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMapYes",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "ConvoTestMapNo, DisplayPortrait",
-          "Id": "Convotestmap_Convo04_ConvoTestMapYes1_1",
-          "Txt": "Welcome to the real world.",
-          "Snd": "Stinger_Clue",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMapNo:1",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo04_ConvoTestMapNo1_1",
-          "Txt": "Why not?",
-          "Snd": "Stinger_Freaky",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMapNo:2",
-          "Spkr": "Morpheus",
-          "Trgt": "Player",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo04_ConvoTestMapNo2_1",
-          "Txt": "Like everyone else you were born into bondage, born into a prison that you cannot smell or taste or touch. A prison for your mind.... Unfortunately, no one can be told what the Matrix is. You have to see it for yourself.",
-          "Snd": "Stinger_Reward_0",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        }
-      ],
-      "Name": "Convo_04"
-    },
-    {
-      "Lines": [
-        {
-          "Evt": "ConvoTestMap_02:1",
-          "Spkr": "ActorA",
-          "Trgt": "ActorB",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo02_ConvoTestMap021_1",
-          "Txt": "This is the first sentence of this conversation",
-          "Snd": "Stinger_Sinister",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:2",
-          "Spkr": "ActorB",
-          "Trgt": "ActorA",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo02_ConvoTestMap022_1",
-          "Txt": "Yes, this conversation involve three characters.",
-          "Snd": "Stinger_Threatened",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:3",
-          "Spkr": "ActorC",
-          "Trgt": "ActorB",
-          "Dscr": "DisplayPortrait, ChooseResponse",
-          "Id": "Convotestmap_Convo02_ConvoTestMap023_1",
-          "Txt": "And the player?",
-          "Snd": "Stinger_Wanderer_Mystic",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:4",
-          "Spkr": "Player",
-          "Trgt": "ActorC",
-          "Dscr": "Branch:ConvoTestMap_02_Answer",
-          "Id": "Convotestmap_Convo02_ConvoTestMap024_1",
-          "Txt": "Yes, I'm here dude.",
-          "Snd": "Stinger_Drama_1",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:4",
-          "Spkr": "Player",
-          "Trgt": "ActorC",
-          "Dscr": "Branch:ConvoTestMap_02_Answer",
-          "Id": "Convotestmap_Convo02_ConvoTestMap024_2",
-          "Txt": "Nop, I'm just watching.",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02_Answer",
-          "Spkr": "ActorB",
-          "Trgt": "Player",
-          "Dscr": "StopPortrait",
-          "Id": "Convotestmap_Convo02_ConvoTestMap02Answer1_1",
-          "Txt": "Soft, what light through yonder window breaks? It is the east, and designers are my sun.",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02_Answer",
-          "Spkr": "ActorB",
-          "Trgt": "Player",
-          "Dscr": "StopPortrait",
-          "Id": "Convotestmap_Convo02_ConvoTestMap02Answer1_2",
-          "Txt": "Well, this seems cool. Can't wait to say cool lines. Not those poor ones written by a designer.",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:4",
-          "Spkr": "Player",
-          "Trgt": "ActorC",
-          "Id": "Convotestmap_Convo02_ConvoTestMap024_3",
-          "Txt": "t0",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:4",
-          "Spkr": "Player",
-          "Trgt": "ActorC",
-          "Id": "Convotestmap_Convo02_ConvoTestMap024_4",
-          "Txt": "t1",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_02:4",
-          "Spkr": "Player",
-          "Trgt": "ActorC",
-          "Id": "Convotestmap_Convo02_ConvoTestMap024_5",
-          "Txt": "t2",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        }
-      ],
-      "Name": "Convo_02"
-    },
-    {
-      "Lines": [
-        {
-          "Evt": "ConvoTestMap_03:1",
-          "Spkr": "ActorD",
-          "Trgt": "ActorE",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo03_ConvoTestMap031_1",
-          "Txt": "If I said something, the narrator could comment on it, right?",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_03:2",
-          "Spkr": "Player",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo03_ConvoTestMap032_1",
-          "Txt": "(This character seems impatient. Do not why)",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        },
-        {
-          "Evt": "ConvoTestMap_03:3",
-          "Spkr": "ActorE",
-          "Trgt": "ActorD",
-          "Dscr": "DisplayPortrait",
-          "Id": "Convotestmap_Convo03_ConvoTestMap033_1",
-          "Txt": "Yep, I think that the narrator is played on the player.",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        }
-      ],
-      "Name": "Convo_03"
-    },
-    {
-      "Lines": [
-        {
-          "Evt": "ConvoTestMap_Ambient:1",
-          "Spkr": "Ghost, GhostNoTalk",
-          "Dscr": "BarkPortrait",
-          "Id": "Convotestmap_ConvoAmbient_ConvoTestMapAmbient1_1",
-          "Txt": "This is a repeating bark to test the blurb portrait at [LocationName]1.",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        }
-      ],
-      "Name": "Convo_Ambient"
-    },
-    {
-      "Lines": [
-        {
-          "Evt": "ConvoTestMap_Subtitle:1",
-          "Dscr": "Subtitle",
-          "Id": "Convotestmap_ConvoSubtitle_ConvoTestMapSubtitle1_1",
-          "Txt": "This is a test subtitle.",
-          "Cmt": "Just for testing, not used in game.",
-          "Loc": 1
-        }
-      ],
-      "Name": "Convo_Subtitle"
-    },
-    {
-      "Lines": [
-        {
-          "Evt": "",
-          "Id": "Convotestmap_VignetteMinecrawler_1_1",
-          "Txt": ""
-        }
-      ],
-      "Name": "Vignette - MineCrawler"
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dialogue</title>
+  <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+  <style>
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
     }
-  ],
-  "LocalizationDisabled": true,
-  "Name": "ConvoTestMap"
-}</textarea>
-      </span>
-      <span class="mdc-line-ripple"></span>
-    </label>
 
-    <button class="mdc-button mdc-button--raised" onClick="populateTable()">
-      <span class="mdc-button__label">Import</span>
-    </button>
-    <button class="mdc-button mdc-button--raised" onClick="populateTextArea()">
-      <span class="mdc-button__label">Export</span>
-    </button>
-    
-    <table>
-     <thead>
-       <tr>
-         <th></th>
-       </tr>
-     </thead>
-     <tbody>
-       <tr>
-         <td></td>
-       </tr>
-     </tbody>
-   </table>
-    
-    <div class="mdc-data-table">
-      <div class="mdc-data-table__table-container">
-        <table class="mdc-data-table__table" aria-label="Dialog table">
-          <thead>
-            <tr class="mdc-data-table__header-row">
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Subchunk</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Event</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Text</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Speaker</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Target</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Id</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Actions</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Sound</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Comment</th>
-              <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Localize</th>
-            </tr>
-          </thead>
-          <div contenteditable>
-            <tbody class="mdc-data-table__content" id="datatablebody">
-            </tbody>
-          </div>
-        </table>
-      </div>
+    .element-card {
+      width: 20em;
+      margin: 16px;
+    }
+
+    .element-card>.mdc-card__media {
+      height: 9em;
+    }
+
+    #demo-absolute-fab {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 1;
+    }
+
+    #textarea {
+      font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-table@6.8.6/react-table.js"></script>
+  <script src="parser.js"></script>
+</head>
+
+<body class="mdc-typography">
+  <label class="mdc-text-field mdc-text-field--filled mdc-text-field--textarea mdc-text-field--no-label">
+    <span class="mdc-text-field__ripple"></span>
+    <span class="mdc-text-field__resizer">
+      <textarea class="mdc-text-field__input" onchange="textareaListener()" rows="8" cols="40" aria-label="Label"
+        id="textarea">Paste JSON here</textarea>
+    </span>
+    <span class="mdc-line-ripple"></span>
+  </label>
+
+  <button class="mdc-button mdc-button--raised" onClick="populateTable()">
+    <span class="mdc-button__label">Import</span>
+  </button>
+  <button class="mdc-button mdc-button--raised" onClick="populateTextArea()">
+    <span class="mdc-button__label">Export</span>
+  </button>
+
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="mdc-data-table">
+    <div class="mdc-data-table__table-container">
+      <table class="mdc-data-table__table" aria-label="Dialog table">
+        <thead>
+          <tr class="mdc-data-table__header-row">
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Subchunk</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Event</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:39%">Text</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Speaker</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Target</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Id</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Actions</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Sound</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Comment</th>
+            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="width:10%">Localize</th>
+          </tr>
+        </thead>
+        <div contenteditable>
+          <tbody class="mdc-data-table__content" id="datatablebody">
+          </tbody>
+        </div>
+      </table>
     </div>
+  </div>
 
-    
-  </body>
+
+</body>
 <html>

@@ -2,6 +2,13 @@
 
 var jsonObj;
 
+window.onload = function () {
+  var cached = localStorage.getItem("jsonObj");
+  if (cached != null) {
+    document.getElementById("textarea").value = cached;
+  }
+}
+
 function insertCell(row, subchunkIndex, lineIndex, fieldName) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
@@ -34,6 +41,12 @@ function updateJsonListener() {
   }
 }
 
+function textareaListener() {
+  console.log("updating cache")
+  var jsonInput = document.getElementById("textarea").value;
+  localStorage.setItem("jsonObj", jsonInput);
+}
+
 function insertRow(row, subchunkIndex, lineIndex) {
   insertCell(row, subchunkIndex);
   insertCell(row, subchunkIndex, lineIndex, "Evt");
@@ -56,21 +69,18 @@ function populateTable() {
   table.innerHTML = "";
   for (var i = 0; i < jsonObj.SubChunks.length; i++) {
     var subchunk = jsonObj.SubChunks[i];
-    var subchunkName = subchunk.Name;
 
     for (var j = 0; j < subchunk.Lines.length; j++) {
       var line = subchunk.Lines[j];
       let row = table.insertRow();
       row.setAttribute("class", "mdc-data-table__row");
       row.setAttribute("data-row-id", line.Id);
-      var rowValues = {};
       insertRow(row, i, j);
     }
   }
 }
 
 function populateTextArea() {
-  console.log(jsonObj);
   var textbox = document.getElementById("textarea");
   textbox.innerHTML = JSON.stringify(jsonObj, null, 2);
 }

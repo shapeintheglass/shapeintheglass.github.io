@@ -2,11 +2,13 @@
 
 var jsonObj;
 var subchunkIndex;
+const columnList = ["Dupe", "AddBelow", "AddAbove", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Loc", "Obj1", "Obj2", "Clr"];
 
 const iconDupeSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
 const iconAddRowAfterSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
 const iconAddRowBeforeSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,14A2,2 0 0,0 20,12H4A2,2 0 0,0 2,14V21H4V19H8V21H10V19H14V21H16V19H20V21H22V14M4,14H8V17H4V14M10,14H14V17H10V14M20,14V17H16V14H20M11,10H13V7H16V5H13V2H11V5H8V7H11V10Z" /></svg>`;
 const iconRemoveRowSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M9.41,13L12,15.59L14.59,13L16,14.41L13.41,17L16,19.59L14.59,21L12,18.41L9.41,21L8,19.59L10.59,17L8,14.41L9.41,13M22,9A2,2 0 0,1 20,11H4A2,2 0 0,1 2,9V6A2,2 0 0,1 4,4H20A2,2 0 0,1 22,6V9M4,9H8V6H4V9M10,9H14V6H10V9M16,9H20V6H16V9Z" /></svg>`;
+const iconSortSvg = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z" /></svg>`;
 
 // Shamelessly copied from stackoverflow, determines if a string is valid JSON
 function isJsonString(str) {
@@ -31,6 +33,61 @@ window.onload = function () {
   if (isJsonString(cached)) {
     populateSelector();
   }
+}
+
+var columnNames = {
+  "Dupe": "",
+  "AddBelow": "",
+  "AddAbove": "",
+  "Del": "",
+  "Obj1": "Object 1",
+  "Obj2": "Object 2",
+  "LineId": "Index",
+  "Evt": "Event",
+  "Txt": "Text",
+  "Spkr": "Speaker",
+  "Trgt": "Target",
+  "Id": "ID",
+  "Dscr": "Actions",
+  "Snd": "Sound",
+  "Cmt": "Comment",
+  "Loc": "Localize",
+  "Clr": "Color"
+};
+
+function insertHeaderCell(row, name) {
+  let cell = document.createElement("th");
+  cell.setAttribute("class", "mdc-data-table__header-cell");
+  cell.setAttribute("role", "columnheader");
+  cell.setAttribute("scope", "col");
+  cell.setAttribute("aria-sort", "none");
+  cell.setAttribute("style", "font-weight: bold;");
+  cell.setAttribute("data-column-id", name);
+
+  let headerCellWrapper = document.createElement("div");
+  headerCellWrapper.setAttribute("class", "mdc-data-table__header-cell-wrapper");
+
+  let headerCellLabel = document.createElement("div");
+  headerCellLabel.setAttribute("class", "mdc-data-table__header-cell-label");
+  headerCellLabel.innerHTML = name;
+
+  cell.appendChild(headerCellWrapper);
+  headerCellWrapper.appendChild(headerCellLabel);
+  row.appendChild(cell);
+}
+
+function insertHeader() {
+  var headerRow = document.getElementById("headerrow");
+  columnList.forEach(e => {
+    insertHeaderCell(headerRow, columnNames[e]);
+  });
+}
+
+// Inserts a special cell that contains the index of the current line
+function insertLineIdCell(row, lineIndex) {
+  let cell = row.insertCell();
+  cell.setAttribute("class", "mdc-data-table__cell");
+  cell.innerHTML = lineIndex;
 }
 
 // Inserts a special cell that duplicates the current row when clicked
@@ -150,19 +207,27 @@ function textareaListener() {
 
 // Populates a row
 function insertRow(row, lineIndex) {
-  insertDuplicateCell(row, lineIndex);
-  insertAddAboveCell(row, lineIndex);
-  insertAddBelowCell(row, lineIndex);
-  insertRemoveCell(row, lineIndex);
-  insertCell(row, lineIndex, "Evt");
-  insertCell(row, lineIndex, "Txt");
-  insertCell(row, lineIndex, "Spkr");
-  insertCell(row, lineIndex, "Trgt");
-  insertCell(row, lineIndex, "Id");
-  insertCell(row, lineIndex, "Dscr");
-  insertCell(row, lineIndex, "Snd");
-  insertCell(row, lineIndex, "Cmt");
-  insertCell(row, lineIndex, "Loc");
+  columnList.forEach(e => {
+    switch (e) {
+      case "Dupe":
+        insertDuplicateCell(row, lineIndex);
+        break;
+      case "AddAbove":
+        insertAddAboveCell(row, lineIndex);
+        break;
+      case "AddBelow":
+        insertAddBelowCell(row, lineIndex);
+        break;
+      case "Del":
+        insertRemoveCell(row, lineIndex);
+        break;
+      case "LineId":
+        insertLineIdCell(row, lineIndex);
+        break;
+      default:
+        insertCell(row, lineIndex, e);
+    }
+  });
 }
 
 // Loads JSON from the textarea and parses it into an object
@@ -206,7 +271,7 @@ function populateTable() {
   table.innerHTML = "";
 
   var subchunk = jsonObj.SubChunks[subchunkIndex];
-
+  insertHeader();
   for (var j = 0; j < subchunk.Lines.length; j++) {
     var line = subchunk.Lines[j];
     let row = table.insertRow();

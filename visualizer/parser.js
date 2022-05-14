@@ -24,6 +24,12 @@ function insertCell(row, subchunkIndex, lineIndex, fieldName) {
   input.subchunkIndex = subchunkIndex;
   input.lineIndex = lineIndex;
   input.fieldName = fieldName;
+  if (fieldName == "Evt") {
+    input.style = "width:100px";
+  }
+  if (fieldName == "Txt") {
+    input.style = "width:1000px";
+  }
   input.addEventListener('change', updateJsonListener);
   cell.appendChild(input);
 }
@@ -37,7 +43,13 @@ function updateJsonListener() {
     jsonObj.SubChunks[this.subchunkIndex].Name = this.value;
   }
   else {
-    jsonObj.SubChunks[this.subchunkIndex].Lines[this.lineIndex][this.fieldName] = this.value;
+    if (this.value == "" || this.value == "undefined") {
+      delete jsonObj.SubChunks[this.subchunkIndex].Lines[this.lineIndex][this.fieldName];
+    }
+    else {
+      jsonObj.SubChunks[this.subchunkIndex].Lines[this.lineIndex][this.fieldName] = this.value;
+    }
+
   }
 }
 
@@ -81,7 +93,10 @@ function populateTable() {
 }
 
 function populateTextArea() {
+  console.log(jsonObj);
   var textbox = document.getElementById("textarea");
-  textbox.innerHTML = JSON.stringify(jsonObj, null, 2);
+  var textToSet = JSON.stringify(jsonObj, null, 2)
+  textbox.value = textToSet;
+  localStorage.setItem("jsonObj", textToSet);
 }
 

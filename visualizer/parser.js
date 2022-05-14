@@ -1,15 +1,29 @@
 'use strict';
 
 var jsonObj;
+var subchunkIndex;
+
+function isJsonString(str) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
 
 window.onload = function () {
   var cached = localStorage.getItem("jsonObj");
   if (cached != null) {
     document.getElementById("textarea").value = cached;
   }
+  if (isJsonString(cached)) {
+    populateSelector();
+  }
 }
 
-function insertCell(row, subchunkIndex, lineIndex, fieldName) {
+function insertCell(row, lineIndex, fieldName) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
   const input = document.createElement("input");
@@ -25,7 +39,7 @@ function insertCell(row, subchunkIndex, lineIndex, fieldName) {
   input.lineIndex = lineIndex;
   input.fieldName = fieldName;
   if (fieldName == "Evt") {
-    input.style = "width:100px";
+    input.style = "width:300px";
   }
   if (fieldName == "Txt" || fieldName == "Cmt") {
     input.style = "width:1000px";
@@ -59,37 +73,58 @@ function textareaListener() {
   localStorage.setItem("jsonObj", jsonInput);
 }
 
-function insertRow(row, subchunkIndex, lineIndex) {
-  insertCell(row, subchunkIndex);
-  insertCell(row, subchunkIndex, lineIndex, "Evt");
-  insertCell(row, subchunkIndex, lineIndex, "Txt");
-  insertCell(row, subchunkIndex, lineIndex, "Spkr");
-  insertCell(row, subchunkIndex, lineIndex, "Trgt");
-  insertCell(row, subchunkIndex, lineIndex, "Id");
-  insertCell(row, subchunkIndex, lineIndex, "Dscr");
-  insertCell(row, subchunkIndex, lineIndex, "Snd");
-  insertCell(row, subchunkIndex, lineIndex, "Cmt");
-  insertCell(row, subchunkIndex, lineIndex, "Loc");
+function insertRow(row, lineIndex) {
+  insertCell(row, lineIndex, "Evt");
+  insertCell(row, lineIndex, "Txt");
+  insertCell(row, lineIndex, "Spkr");
+  insertCell(row, lineIndex, "Trgt");
+  insertCell(row, lineIndex, "Id");
+  insertCell(row, lineIndex, "Dscr");
+  insertCell(row, lineIndex, "Snd");
+  insertCell(row, lineIndex, "Cmt");
+  insertCell(row, lineIndex, "Loc");
 }
 
-function populateTable() {
+function loadJsonObj() {
   var jsonInput = document.getElementById("textarea").value;
   jsonObj = JSON.parse(jsonInput);
   console.log(jsonObj);
+}
 
-  const table = document.getElementById("datatablebody");
-  table.innerHTML = "";
+function populateSelector() {
+  loadJsonObj();
+  var selector = document.getElementById("subchunkSelector");
+  selector.innerHTML = "";
   for (var i = 0; i < jsonObj.SubChunks.length; i++) {
     var subchunk = jsonObj.SubChunks[i];
-
-    for (var j = 0; j < subchunk.Lines.length; j++) {
-      var line = subchunk.Lines[j];
-      let row = table.insertRow();
-      row.setAttribute("class", "mdc-data-table__row");
-      row.setAttribute("data-row-id", line.Id);
-      insertRow(row, i, j);
-    }
+    var option = document.createElement("option");
+    option.subchunkIndex = i;
+    option.text = subchunk.Name;
+    selector.add(option);
   }
+  selectorListener();
+
+}
+
+function selectorListener() {
+  var selector = document.getElementById("subchunkSelector");
+  subchunkIndex = selector.selectedIndex;
+  populateTable();
+}
+
+function populateTable() {
+  const table = document.getElementById("datatablebody");
+  table.innerHTML = "";
+  var subchunk = jsonObj.SubChunks[subchunkIndex];
+
+  for (var j = 0; j < subchunk.Lines.length; j++) {
+    var line = subchunk.Lines[j];
+    let row = table.insertRow();
+    row.setAttribute("class", "mdc-data-table__row");
+    row.setAttribute("data-row-id", line.Id);
+    insertRow(row, j);
+  }
+
 }
 
 function populateTextArea() {

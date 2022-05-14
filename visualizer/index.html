@@ -49,33 +49,28 @@
     <span class="mdc-line-ripple"></span>
   </label>
 
-  <button class="mdc-button mdc-button--raised" onClick="populateTable()">
+  <button class="mdc-button mdc-button--raised" onClick="populateSelector()">
     <span class="mdc-button__label">Import</span>
   </button>
   <button class="mdc-button mdc-button--raised" onClick="populateTextArea()">
     <span class="mdc-button__label">Export</span>
   </button>
 
-  <table>
-    <thead>
-      <tr>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
+  <p>
+    Subchunks
+  </p>
+  <div>
+    <select id="subchunkSelector" onchange="selectorListener()"></select>
+  </div>
 
+  <p>
+    Data
+  </p>
   <div class="mdc-data-table">
     <div class="mdc-data-table__table-container">
       <table class="mdc-data-table__table" aria-label="Dialog table">
         <thead>
           <tr class="mdc-data-table__header-row">
-            <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="font-weight: bold;">
-              Subchunk</th>
             <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="font-weight: bold;">
               Event</th>
             <th class="mdc-data-table__header-cell" role="columnheader" scope="col" style="font-weight: bold;">

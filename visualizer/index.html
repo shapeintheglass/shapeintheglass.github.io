@@ -21,7 +21,8 @@
 
     li {
       display: inline;
-      padding: 15px;
+      margin: 15px;
+      padding: 5px;
     }
   </style>
   <script src="parser.js"></script>
@@ -32,31 +33,39 @@
   <h3>
     JSON
   </h3>
+  <p>Copy/paste dialog file contents or drag & drop json file:</p>
   <label class="mdc-text-field mdc-text-field--filled mdc-text-field--textarea mdc-text-field--no-label">
     <span class="mdc-text-field__ripple"></span>
     <span class="mdc-text-field__resizer">
-      <textarea class="mdc-text-field__input" onchange="textareaListener()" rows="8" cols="40" aria-label="Label"
-        id="textarea" placeholder="Paste JSON text here"></textarea>
+      <textarea class="mdc-text-field__input" onchange="textareaListener()" ondrop="dropHandler(event);" rows="8"
+        cols="40" aria-label="Label" id="textarea" placeholder="Paste JSON text or drag & drop file here"></textarea>
     </span>
     <span class="mdc-line-ripple"></span>
   </label>
 
-  <button class="mdc-button mdc-button--raised" onClick="populateSelector()">
-    <span class="mdc-button__label">Import</span>
-  </button>
-  <button class="mdc-button mdc-button--raised" onClick="populateTextArea()">
-    <span class="mdc-button__label">Export</span>
-  </button>
+  <p>
+    To export changes from table back into the above text box, click:
+  </p>
+
+  <p>
+    <button class="mdc-button mdc-button--raised" title="Update textbox with table changes"
+      onClick="populateTextArea()">
+      <span class="mdc-button__label">Update With Changes</span>
+    </button>
+  </p>
+
 
   <h3>
     Subchunks
   </h3>
+  <p>Select subchunk to edit here.</p>
   <div>
     <select id="subchunkSelector" onchange="selectorListener()"></select>
   </div>
   <h3>
     Column Visibility Toggles
   </h3>
+  <p>Toggle which columns are visible.</p>
   <div>
     <ul id="column-toggles" style="list-style-type: none;"></ul>
   </div>
@@ -64,6 +73,8 @@
   <h3>
     Data
   </h3>
+  <h4 id="jsonName"></h4>
+  <p id="locInfo"></p>
   <div class="mdc-data-table">
     <div class="mdc-data-table__table-container">
       <table class="mdc-data-table__table" aria-label="Dialog table">

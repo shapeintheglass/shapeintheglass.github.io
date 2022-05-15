@@ -5,7 +5,7 @@ var subchunkIndex;
 var columnVisibility = {};
 
 // Column order
-const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Loc", "Clr"];
+const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Clr", "Evt", "Txt", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
 
 const iconDupeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
 const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
@@ -26,7 +26,7 @@ const columnNames = {
   "Txt": "Text",
   "Spkr": "Speaker",
   "Trgt": "Target",
-  "Id": "ID",
+  "Id": "Localization ID",
   "Dscr": "Actions",
   "Snd": "Sound",
   "Cmt": "Comment",
@@ -213,6 +213,7 @@ function insertEditableCell(row, lineIndex, fieldName) {
   spanResizer.setAttribute("class", "mdc-text-field__resizer");
 
   var input = document.createElement("textarea");
+  input.setAttribute("rows", 3);
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
   input.setAttribute("class", "mdc-text-field__input")
@@ -221,6 +222,7 @@ function insertEditableCell(row, lineIndex, fieldName) {
     case "Evt":
     case "Trgt":
     case "Spkr":
+    case "Dscr":
       input.style = "width:300px";
       break;
     case "Loc":
@@ -228,6 +230,7 @@ function insertEditableCell(row, lineIndex, fieldName) {
       break;
     case "Txt":
     case "Cmt":
+    case "Id":
       input.style = "width:500px";
       break;
     default:
@@ -250,13 +253,6 @@ function insertEditableCell(row, lineIndex, fieldName) {
   labelWrapper.appendChild(spanOutline);
   labelWrapper.appendChild(spanResizer);
   cell.appendChild(labelWrapper);
-}
-
-// Listener for updating the cache every time the textarea is changed
-function textareaListener() {
-  console.log("updating cache")
-  var jsonInput = document.getElementById("textarea").value;
-  localStorage.setItem("jsonObj", jsonInput);
 }
 
 // Populates a row
@@ -378,8 +374,45 @@ function populateColToggles() {
   });
 }
 
+function dropHandler(event) {
+  event.preventDefault();
+  console.log(event);
+  console.log("drag detected");
+  if (event.dataTransfer.items) {
+    // Access only the first item dropped
+    if (event.dataTransfer.items[0].kind === 'file') {
+      var file = event.dataTransfer.items[0].getAsFile();
+      console.log("Is a file");
+      console.log(file.name);
+      file.text().then(text => {
+        document.getElementById("textarea").value = text;
+        populateSelector();
+      });
+    }
+  } else {
+    console.log("Not a file");
+    console.log(event.dataTransfer.files[0].name);
+  }
+}
+
+// Listener for updating the cache every time the textarea is changed
+function textareaListener() {
+  console.log("updating cache")
+  var jsonInput = document.getElementById("textarea").value;
+  localStorage.setItem("jsonObj", jsonInput);
+  populateSelector();
+}
+
 // Populates the table with what is currently in the global jsonObj variable
 function populateTable() {
+  const nameElement = document.getElementById("jsonName");
+  nameElement.innerHTML = jsonObj.Name;
+
+  const locElement = document.getElementById("locInfo");
+  if (jsonObj.LocalizationDisabled) {
+    locElement.innerHTML = "Localization DISABLED";
+  }
+
   const table = document.getElementById("datatablebody");
   table.innerHTML = "";
 

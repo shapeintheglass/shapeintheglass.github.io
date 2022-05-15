@@ -2,9 +2,10 @@
 
 var jsonObj;
 var subchunkIndex;
+var columnVisibility = {};
 
 // Column order
-const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Loc", "Obj1", "Obj2", "Clr"];
+const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Loc", "Clr"];
 
 const iconDupeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
 const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
@@ -53,6 +54,7 @@ window.onload = function () {
   if (cachedSubchunkIndex != null) {
     subchunkIndex = cachedSubchunkIndex;
   }
+  populateColToggles();
   if (isJsonString(cached)) {
     populateSelector();
   }
@@ -85,7 +87,9 @@ function insertHeader() {
   var headerRow = document.getElementById("headerrow");
   headerRow.innerHTML = "";
   columnList.forEach(e => {
-    insertHeaderCell(headerRow, columnNames[e]);
+    if (columnVisibility[e]) {
+      insertHeaderCell(headerRow, columnNames[e]);
+    }
   });
 }
 
@@ -258,6 +262,9 @@ function textareaListener() {
 // Populates a row
 function insertRow(row, lineIndex) {
   columnList.forEach(e => {
+    if (!columnVisibility[e]) {
+      return;
+    }
     switch (e) {
       case "Dupe":
         insertDuplicateCell(row, lineIndex);
@@ -333,6 +340,44 @@ function selectorListener() {
   populateTable();
 }
 
+function populateColToggles() {
+  const colToggles = document.getElementById("column-toggles");
+  colToggles.innerHTML = "";
+  columnList.forEach(e => {
+    var visibilityName = "Visible" + e;
+    var cachedVisibility = localStorage.getItem(visibilityName);
+    if (cachedVisibility != undefined) {
+      columnVisibility[e] = cachedVisibility == "true";
+    } else {
+      columnVisibility[e] = true;
+    }
+
+    let name = columnNames[e];
+    if (name == undefined || name == "") {
+      return;
+    }
+    let spanWrapper = document.createElement("li");
+    let toggle = document.createElement("input");
+    toggle.setAttribute("type", "checkbox");
+    toggle.setAttribute("id", e);
+    toggle.colName = e;
+    toggle.checked = columnVisibility[e];
+
+    toggle.addEventListener("click", () => {
+      console.log(`updating checkbox ${e} to ${toggle.checked}`)
+      columnVisibility[e] = toggle.checked;
+      localStorage.setItem("Visible" + e, toggle.checked);
+      populateTable();
+    });
+    let label = document.createElement("label");
+    label.setAttribute("for", e);
+    label.innerHTML = name;
+    spanWrapper.appendChild(toggle);
+    spanWrapper.appendChild(label);
+    colToggles.appendChild(spanWrapper);
+  });
+}
+
 // Populates the table with what is currently in the global jsonObj variable
 function populateTable() {
   const table = document.getElementById("datatablebody");
@@ -353,7 +398,7 @@ function populateTable() {
 // Populates the text area with what is currenly in the global jsonObj variable
 function populateTextArea() {
   var textbox = document.getElementById("textarea");
-  var textToSet = JSON.stringify(jsonObj, null, 2)
+  var textToSet = JSON.stringify(jsonObj, null, 2);
   textbox.value = textToSet;
   localStorage.setItem("jsonObj", textToSet);
 }

@@ -34,6 +34,16 @@ const columnNames = {
   "Clr": "Color"
 };
 
+function clearAll() {
+  console.log("clearing");
+  localStorage.clear();
+  jsonObj = {};
+  document.getElementById("textarea").value = "";
+  populateSelector();
+  populateTable();
+  populateColToggles();
+}
+
 // Shamelessly copied from stackoverflow, determines if a string is valid JSON
 function isJsonString(str) {
   try {
@@ -86,6 +96,9 @@ function insertHeaderCell(row, name) {
 function insertHeader() {
   var headerRow = document.getElementById("headerrow");
   headerRow.innerHTML = "";
+  if (jsonObj.SubChunks == undefined || jsonObj.SubChunks.length == 0) {
+    return;
+  }
   columnList.forEach(e => {
     if (columnVisibility[e]) {
       insertHeaderCell(headerRow, columnNames[e]);
@@ -302,7 +315,12 @@ function insertRow(row, lineIndex) {
 // Loads JSON from the textarea and parses it into an object
 function loadJsonObj() {
   var jsonInput = document.getElementById("textarea").value;
-  jsonObj = JSON.parse(jsonInput);
+  try {
+    jsonObj = JSON.parse(jsonInput);
+  } catch (e) {
+    jsonObj = {};
+    return;
+  }
 
   if (subchunkIndex == undefined || subchunkIndex < 0 || subchunkIndex > jsonObj.SubChunks.length) {
     // Reset the current subchunk index
@@ -313,8 +331,14 @@ function loadJsonObj() {
 // Populates the subchunk dropdown selector
 function populateSelector() {
   loadJsonObj();
+
   var selector = document.getElementById("subchunkSelector");
   selector.innerHTML = "";
+
+  if (jsonObj.SubChunks == undefined) {
+    return;
+  }
+
   for (var i = 0; i < jsonObj.SubChunks.length; i++) {
     var subchunk = jsonObj.SubChunks[i];
     var option = document.createElement("option");
@@ -386,6 +410,7 @@ function dropHandler(event) {
       console.log(file.name);
       file.text().then(text => {
         document.getElementById("textarea").value = text;
+        textareaListener();
         populateSelector();
       });
     }
@@ -406,7 +431,7 @@ function textareaListener() {
 // Populates the table with what is currently in the global jsonObj variable
 function populateTable() {
   const nameElement = document.getElementById("jsonName");
-  nameElement.innerHTML = jsonObj.Name;
+  nameElement.innerHTML = jsonObj.Name != undefined ? jsonObj.Name : "";
 
   const locElement = document.getElementById("locInfo");
   if (jsonObj.LocalizationDisabled) {
@@ -416,8 +441,11 @@ function populateTable() {
   const table = document.getElementById("datatablebody");
   table.innerHTML = "";
 
-  var subchunk = jsonObj.SubChunks[subchunkIndex];
   insertHeader();
+  if (jsonObj.SubChunks == undefined || jsonObj.SubChunks.length == 0) {
+    return;
+  }
+  var subchunk = jsonObj.SubChunks[subchunkIndex];
   for (var j = 0; j < subchunk.Lines.length; j++) {
     var line = subchunk.Lines[j];
     let row = table.insertRow();
@@ -435,4 +463,3 @@ function populateTextArea() {
   textbox.value = textToSet;
   localStorage.setItem("jsonObj", textToSet);
 }
-

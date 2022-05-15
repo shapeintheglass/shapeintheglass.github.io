@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dialogue</title>
+  <title>Dialogue Visualizer</title>
 
   <style>
     #textarea {
@@ -34,23 +34,20 @@
     JSON
   </h3>
   <p>Copy/paste dialog file contents or drag & drop json file:</p>
-  <label class="mdc-text-field mdc-text-field--filled mdc-text-field--textarea mdc-text-field--no-label">
-    <span class="mdc-text-field__ripple"></span>
-    <span class="mdc-text-field__resizer">
-      <textarea class="mdc-text-field__input" onchange="textareaListener()" ondrop="dropHandler(event);" rows="8"
-        cols="40" aria-label="Label" id="textarea" placeholder="Paste JSON text or drag & drop file here"></textarea>
+  <label>
+    <span>
+      <textarea onchange="textareaListener()" ondrop="dropHandler(event);" rows="8" cols="40" aria-label="Label"
+        id="textarea" placeholder="Paste JSON text or drag & drop file here"></textarea>
     </span>
-    <span class="mdc-line-ripple"></span>
   </label>
 
+  <p>After making changes, click "Export Changes" to update the textbox with the updated json.</p>
   <p>
-    To export changes from table back into the above text box, click:
-  </p>
-
-  <p>
-    <button class="mdc-button mdc-button--raised" title="Update textbox with table changes"
-      onClick="populateTextArea()">
-      <span class="mdc-button__label">Update With Changes</span>
+    <button title="Update textbox with changes from table" onClick="populateTextArea()">
+      <span>Export Changes</span>
+    </button>
+    <button title="Clear local storage" onClick="clearAll()">
+      <span>Clear</span>
     </button>
   </p>
 

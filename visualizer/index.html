@@ -29,14 +29,14 @@
 </head>
 
 <body>
-
   <h3>
     JSON
   </h3>
-  <p>Copy/paste dialog file contents or drag & drop json file (only works with json files in TagDatabases\Dialogue):</p>
+  <p>Copy/paste dialog file contents or drag & drop json file (only works with json files in TagDatabases\Dialogue):
+  </p>
   <label>
     <span>
-      <textarea onchange="textareaListener()" ondrop="dropHandler(event);" rows="8" cols="40" aria-label="Label"
+      <textarea onchange="textareaListener()" ondrop="dropHandler(event)" rows="8" cols="40" aria-label="Label"
         id="textarea" placeholder="Paste JSON text or drag & drop file here"></textarea>
     </span>
   </label>
@@ -64,23 +64,29 @@
   <hr class="solid">
 
   <h3>Analytics</h3>
+  <div>Subchunks: <span id="analytics-num-subchunks" style="font-weight: bold"></span> | Lines: <span
+      id="analytics-num-lines" style="font-weight: bold"></span></div>
 
-  Basic info about the current file will appear here.
+  <span>
+    <span style="display:inline-block">
+      <p>Tags used (<span id="analytics-num-tags" style="font-weight: bold"></span>):</p> <textarea readonly rows="15"
+        cols="40" placeholder="Tags used in the current imported file will appear here"
+        id="analytics-all-tags"></textarea>
+    </span>
 
-  <div>
-    <p>Subchunks: <span id="analytics-num-subchunks" style="font-weight: bold"></span> | Lines: <span
-        id="analytics-num-lines" style="font-weight: bold"></span>
-      | Tags: <span id="analytics-num-tags" style="font-weight: bold"></span></p>
-    <p>Tags used (applies to current imported file only):</p>
-    <textarea readonly rows="8" cols="40" placeholder="Tags used in the current imported file will appear here"
-      id="analytics-all-tags"></textarea>
-  </div>
+    <span style="display:inline-block">
+      <p>Events used (<span id="analytics-num-events" style="font-weight: bold"></span>):</p> <textarea readonly
+        rows="15" cols="100" placeholder="Events used in the current imported file will appear here"
+        id="analytics-all-events"></textarea>
+    </span>
+
+  </span>
 
   <hr class="solid">
 
   <h3>Filters</h3>
 
-  <div id="filter-container">
+  <span id="filter-container">
     <select id="filter-column"></select>
     <select id="filter-operation">
       <option value="is">contains</option>
@@ -89,7 +95,7 @@
     <input id="filter-terms"></input>
     <button onclick="filterListener()">Apply</button>
     <button onclick="filterClear()">Clear</button>
-  </div>
+  </span>
 
   <hr class="solid">
 

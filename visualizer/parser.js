@@ -54,6 +54,8 @@ window.onload = function () {
   renderSubchunkSelector();
 }
 
+window.ondrop = dropHandler;
+
 // Loads JSON from the textarea and parses it into an object
 function getJsonObjFromTextarea() {
   var jsonInput = document.getElementById("textarea").value;
@@ -61,6 +63,8 @@ function getJsonObjFromTextarea() {
     jsonObj = JSON.parse(jsonInput);
   } catch (e) {
     jsonObj = {};
+    // Update analytics
+    analytics();
     return;
   }
 
@@ -86,15 +90,47 @@ function getTagsFromCsv(csvStr) {
   });
 }
 
+function getEventName(eventStr) {
+  if (eventStr.includes(":")) {
+    let index = eventStr.indexOf(":");
+    return eventStr.substr(0, index);
+  }
+  return eventStr;
+}
+
+// In-place case-insensitive sort, shamelessly copied from stackoverflow
+function arrCaseInsensitiveSort(arr) {
+  arr.sort(function (a, b) {
+    if (a.toLowerCase() < b.toLowerCase()) return -1;
+    if (a.toLowerCase() > b.toLowerCase()) return 1;
+    return 0;
+  });
+}
+
 function analytics() {
   let analyticsSubchunk = document.getElementById("analytics-num-subchunks");
   let analyticsLine = document.getElementById("analytics-num-lines");
   let analyticsTags = document.getElementById("analytics-num-tags");
   let analyticsAllTags = document.getElementById("analytics-all-tags");
+  let analyticsEvents = document.getElementById("analytics-num-events");
+  let analyticsAllEvents = document.getElementById("analytics-all-events");
+
+  analyticsSubchunk.innerHTML = "";
+  analyticsLine.innerHTML = "";
+  analyticsTags.innerHTML = "";
+  analyticsAllTags.value = "";
+  analyticsEvents.innerHTML = "";
+  analyticsAllEvents.value = "";
+
+  if (jsonObj.SubChunks == undefined) {
+    return;
+  }
   let numSubChunks = jsonObj.SubChunks.length;
 
   let numLines = 0;
   let tags = new Set();
+  let events = new Set();
+
   jsonObj.SubChunks.forEach(subchunk => {
     numLines += subchunk.Lines.length;
     subchunk.Lines.forEach(line => {
@@ -102,21 +138,24 @@ function analytics() {
       let trgtTags = getTagsFromCsv(line['Trgt']);
       spkrTags.forEach(tag => tags.add(tag));
       trgtTags.forEach(tag => tags.add(tag));
+      events.add("[" + subchunk.Name + "] " + getEventName(line['Evt']));
     });
   });
   analyticsSubchunk.innerHTML = numSubChunks;
   analyticsLine.innerHTML = numLines;
   analyticsTags.innerHTML = tags.size;
   let tagsArr = Array.from(tags);
-  // Case insensitive sort shamelessly copied from stackoverflow
-  tagsArr.sort(function (a, b) {
-    if (a.toLowerCase() < b.toLowerCase()) return -1;
-    if (a.toLowerCase() > b.toLowerCase()) return 1;
-    return 0;
-  });
+  arrCaseInsensitiveSort(tagsArr);
   let tagsStr = "";
   tagsArr.forEach(tag => tagsStr += tag + "\n");
   analyticsAllTags.value = tagsStr;
+
+  analyticsEvents.innerHTML = events.size;
+  let eventsStr = "";
+  let eventsArr = Array.from(events);
+  arrCaseInsensitiveSort(eventsArr);
+  eventsArr.forEach(event => eventsStr += event + "\n");
+  analyticsAllEvents.value = eventsStr;
 }
 
 //#region Cell operations
@@ -579,8 +618,8 @@ function populateTextArea() {
 function clearAll() {
   console.log("clearing");
   localStorage.clear();
-  jsonObj = {};
   document.getElementById("textarea").value = "";
+  getJsonObjFromTextarea()
   renderSubchunkSelector();
   renderTable();
   renderColToggles();

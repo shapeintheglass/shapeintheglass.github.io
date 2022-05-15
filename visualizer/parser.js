@@ -29,7 +29,7 @@ const columnNames = {
   "Dscr": "Actions",
   "Snd": "Sound",
   "Cmt": "Comment",
-  "Loc": "Localize",
+  "Loc": "Loc",
   "Clr": "Color"
 };
 
@@ -153,6 +153,21 @@ function mutateTable(subchunkIndex, lineIndex, action) {
   populateTable();
 }
 
+// Inserts a checkbox cell
+function insertCheckboxCell(row, lineIndex, getFromJsonObjHelper, updateJsonObjHelper) {
+  let cell = row.insertCell();
+  cell.setAttribute("class", "mdc-data-table__cell");
+  const input = document.createElement("input");
+  input.setAttribute("type", "checkbox");
+  input.checked = getFromJsonObjHelper(subchunkIndex, lineIndex);
+  input.addEventListener('change', () => {
+    let value = input.checked;
+    updateJsonObjHelper(subchunkIndex, lineIndex, value);
+    populateTable();
+  });
+  cell.appendChild(input);
+}
+
 // Inserts a special color selector cell
 function insertColorCell(row, lineIndex) {
   let cell = row.insertCell();
@@ -236,6 +251,19 @@ function insertRow(row, lineIndex) {
       case "Clr":
         insertColorCell(row, lineIndex);
         break;
+      case "Loc":
+        insertCheckboxCell(row, lineIndex, (subchunkIndex, lineIndex) => {
+          return jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Loc"] == "1";
+        }, (subchunkIndex, lineIndex, value) => {
+          if (value) {
+            console.log(`setting loc checkbox for subchunk ${subchunkIndex} line ${lineIndex}`);
+            jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Loc"] = "1";
+          } else {
+            console.log(`removing loc checkbox for subchunk ${subchunkIndex} line ${lineIndex}`);
+            delete jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Loc"];
+          }
+        });
+        break;
       default:
         insertEditableCell(row, lineIndex, e);
     }
@@ -246,9 +274,11 @@ function insertRow(row, lineIndex) {
 function loadJsonObj() {
   var jsonInput = document.getElementById("textarea").value;
   jsonObj = JSON.parse(jsonInput);
-  // Reset the current subchunk index
-  subchunkIndex = 0;
-  console.log("loaded json");
+
+  if (subchunkIndex == undefined || subchunkIndex < 0 ||subchunkIndex > jsonObj.SubChunks.length) {
+    // Reset the current subchunk index
+    subchunkIndex = 0;
+  }
 }
 
 // Populates the subchunk dropdown selector

@@ -425,6 +425,7 @@ function textareaListener() {
   console.log("updating cache")
   var jsonInput = document.getElementById("textarea").value;
   localStorage.setItem("jsonObj", jsonInput);
+  subchunkIndex = 0;
   populateSelector();
 }
 

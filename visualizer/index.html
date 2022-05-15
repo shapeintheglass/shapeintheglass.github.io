@@ -28,12 +28,12 @@
   <script src="parser.js"></script>
 </head>
 
-<body class="mdc-typography">
+<body>
 
   <h3>
     JSON
   </h3>
-  <p>Copy/paste dialog file contents or drag & drop json file:</p>
+  <p>Copy/paste dialog file contents or drag & drop json file (only works with json files in TagDatabases\Dialogue):</p>
   <label>
     <span>
       <textarea onchange="textareaListener()" ondrop="dropHandler(event);" rows="8" cols="40" aria-label="Label"
@@ -50,8 +50,7 @@
       <span>Clear</span>
     </button>
   </p>
-
-
+  <hr class="solid">
   <h3>
     Subchunks
   </h3>
@@ -59,6 +58,7 @@
   <div>
     <select id="subchunkSelector" onchange="selectorListener()"></select>
   </div>
+  <hr class="solid">
   <h3>
     Column Visibility Toggles
   </h3>
@@ -66,20 +66,20 @@
   <div>
     <ul id="column-toggles" style="list-style-type: none;"></ul>
   </div>
-
+  <hr class="solid">
   <h3>
     Data
   </h3>
   <h4 id="jsonName"></h4>
   <p id="locInfo"></p>
-  <div class="mdc-data-table">
-    <div class="mdc-data-table__table-container">
-      <table class="mdc-data-table__table" aria-label="Dialog table">
+  <div>
+    <div>
+      <table aria-label="Dialog table">
         <thead>
-          <tr class="mdc-data-table__header-row" id="headerrow">
+          <tr id="headerrow">
           </tr>
         </thead>
-        <tbody class="mdc-data-table__content" id="datatablebody">
+        <tbody id="datatablebody">
         </tbody>
       </table>
     </div>

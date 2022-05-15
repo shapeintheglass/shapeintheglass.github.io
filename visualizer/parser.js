@@ -4,7 +4,7 @@ var jsonObj;
 var subchunkIndex;
 
 // Column order
-const columnList = ["Dupe", "AddBelow", "AddAbove", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Loc", "Obj1", "Obj2", "Clr"];
+const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Evt", "Txt", "Spkr", "Trgt", "Id", "Dscr", "Snd", "Cmt", "Loc", "Obj1", "Obj2", "Clr"];
 
 const iconDupeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
 const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
@@ -92,6 +92,7 @@ function insertHeader() {
 // Inserts a special cell that contains the index of the current line
 function insertLineIdCell(row, lineIndex) {
   let cell = row.insertCell();
+  cell.setAttribute("style", "text-align: center");
   cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = lineIndex;
 }
@@ -195,19 +196,41 @@ function insertColorCell(row, lineIndex) {
 function insertEditableCell(row, lineIndex, fieldName) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdc-data-table__cell");
-  const input = document.createElement("textarea");
+
+  var labelWrapper = document.createElement("label");
+  labelWrapper.setAttribute("class", "mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label");
+
+  var spanOutline = document.createElement("span");
+  spanOutline.setAttribute("class", "mdc-notched-outline");
+  spanOutline.innerHTML = `<span class="mdc-notched-outline__leading"></span>
+  <span class="mdc-notched-outline__trailing"></span>`;
+
+  var spanResizer = document.createElement("span");
+  spanResizer.setAttribute("class", "mdc-text-field__resizer");
+
+  var input = document.createElement("textarea");
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
+  input.setAttribute("class", "mdc-text-field__input")
 
-  if (fieldName == "Evt" || fieldName == "Trgt" || fieldName == "Spkr") {
-    input.style = "width:300px";
+  switch (fieldName) {
+    case "Evt":
+    case "Trgt":
+    case "Spkr":
+      input.style = "width:300px";
+      break;
+    case "Loc":
+      input.style = "width:25px";
+      break;
+    case "Txt":
+    case "Cmt":
+      input.style = "width:500px";
+      break;
+    default:
+      input.style = "width:200px";
   }
-  if (fieldName == "Loc") {
-    input.style = "width:25px";
-  }
-  if (fieldName == "Txt" || fieldName == "Cmt") {
-    input.style = "width:500px";
-  }
+
+
   input.addEventListener('change', input => {
     let newValue = input.target?.value;
     console.log(`updating subchunk index ${subchunkIndex}, line index ${lineIndex}, field name ${fieldName} from "${value}" to "${newValue}"`);
@@ -219,7 +242,10 @@ function insertEditableCell(row, lineIndex, fieldName) {
       jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName] = newValue;
     }
   });
-  cell.appendChild(input);
+  spanResizer.appendChild(input);
+  labelWrapper.appendChild(spanOutline);
+  labelWrapper.appendChild(spanResizer);
+  cell.appendChild(labelWrapper);
 }
 
 // Listener for updating the cache every time the textarea is changed
@@ -275,7 +301,7 @@ function loadJsonObj() {
   var jsonInput = document.getElementById("textarea").value;
   jsonObj = JSON.parse(jsonInput);
 
-  if (subchunkIndex == undefined || subchunkIndex < 0 ||subchunkIndex > jsonObj.SubChunks.length) {
+  if (subchunkIndex == undefined || subchunkIndex < 0 || subchunkIndex > jsonObj.SubChunks.length) {
     // Reset the current subchunk index
     subchunkIndex = 0;
   }

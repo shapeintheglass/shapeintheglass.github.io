@@ -8,27 +8,6 @@
   <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
   <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
   <style>
-    .cards {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .element-card {
-      width: 20em;
-      margin: 16px;
-    }
-
-    .element-card>.mdc-card__media {
-      height: 9em;
-    }
-
-    #demo-absolute-fab {
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      z-index: 1;
-    }
-
     #textarea {
       font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
     }
@@ -44,7 +23,7 @@
     <span class="mdc-text-field__ripple"></span>
     <span class="mdc-text-field__resizer">
       <textarea class="mdc-text-field__input" onchange="textareaListener()" rows="8" cols="40" aria-label="Label"
-        id="textarea">Paste JSON here</textarea>
+        id="textarea" placeholder="Paste JSON text here"></textarea>
     </span>
     <span class="mdc-line-ripple"></span>
   </label>

@@ -5,7 +5,7 @@ var subchunkIndex;
 var columnVisibility = {};
 
 // Column order
-const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Clr", "Evt", "Txt", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
+const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
 
 const iconDupeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
 const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
@@ -31,28 +31,12 @@ const columnNames = {
   "Snd": "Sound",
   "Cmt": "Comment",
   "Loc": "Loc",
-  "Clr": "Color"
+  "Clr": "Color",
+  "Wgt": "Weight",
+  "Cool": "Cool"
 };
 
-function clearAll() {
-  console.log("clearing");
-  localStorage.clear();
-  jsonObj = {};
-  document.getElementById("textarea").value = "";
-  populateSelector();
-  populateTable();
-  populateColToggles();
-}
-
-// Shamelessly copied from stackoverflow, determines if a string is valid JSON
-function isJsonString(str) {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
-}
+const csvColumns = ["Spkr", "Trgt", "Dscr"];
 
 // Restores cached state on load
 window.onload = function () {
@@ -64,11 +48,28 @@ window.onload = function () {
   if (cachedSubchunkIndex != null) {
     subchunkIndex = cachedSubchunkIndex;
   }
-  populateColToggles();
-  if (isJsonString(cached)) {
-    populateSelector();
+  populateFilter();
+  renderColToggles();
+  renderSubchunkSelector();
+}
+
+// Loads JSON from the textarea and parses it into an object
+function getJsonObjFromTextarea() {
+  var jsonInput = document.getElementById("textarea").value;
+  try {
+    jsonObj = JSON.parse(jsonInput);
+  } catch (e) {
+    jsonObj = {};
+    return;
+  }
+
+  if (subchunkIndex == undefined || subchunkIndex < 0 || subchunkIndex > jsonObj.SubChunks.length) {
+    // Reset the current subchunk index
+    subchunkIndex = 0;
   }
 }
+
+//#region Cell operations
 
 // Adds a cell to the header
 function insertHeaderCell(row, name) {
@@ -90,20 +91,6 @@ function insertHeaderCell(row, name) {
   cell.appendChild(headerCellWrapper);
   headerCellWrapper.appendChild(headerCellLabel);
   row.appendChild(cell);
-}
-
-// Adds the table header
-function insertHeader() {
-  var headerRow = document.getElementById("headerrow");
-  headerRow.innerHTML = "";
-  if (jsonObj.SubChunks == undefined || jsonObj.SubChunks.length == 0) {
-    return;
-  }
-  columnList.forEach(e => {
-    if (columnVisibility[e]) {
-      insertHeaderCell(headerRow, columnNames[e]);
-    }
-  });
 }
 
 // Inserts a special cell that contains the index of the current line
@@ -168,7 +155,7 @@ function mutateTable(subchunkIndex, lineIndex, action) {
       jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 0, currLine);
       break;
   }
-  populateTable();
+  renderTable();
 }
 
 // Inserts a checkbox cell
@@ -181,7 +168,7 @@ function insertCheckboxCell(row, lineIndex, getFromJsonObjHelper, updateJsonObjH
   input.addEventListener('change', () => {
     let value = input.checked;
     updateJsonObjHelper(subchunkIndex, lineIndex, value);
-    populateTable();
+    renderTable();
   });
   cell.appendChild(input);
 }
@@ -204,7 +191,7 @@ function insertColorCell(row, lineIndex) {
       jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"] = value;
     }
 
-    populateTable();
+    renderTable();
   });
   cell.appendChild(input);
 }
@@ -239,6 +226,8 @@ function insertEditableCell(row, lineIndex, fieldName) {
       input.style = "width:300px";
       break;
     case "Loc":
+    case "Wgt":
+    case "Cool":
       input.style = "width:25px";
       break;
     case "Txt":
@@ -249,7 +238,6 @@ function insertEditableCell(row, lineIndex, fieldName) {
     default:
       input.style = "width:200px";
   }
-
 
   input.addEventListener('change', input => {
     let newValue = input.target?.value;
@@ -268,8 +256,29 @@ function insertEditableCell(row, lineIndex, fieldName) {
   cell.appendChild(labelWrapper);
 }
 
-// Populates a row
-function insertRow(row, lineIndex) {
+//#endregion
+
+//#region Row operations
+
+// Adds the table header
+function insertHeader() {
+  var headerRow = document.getElementById("headerrow");
+  headerRow.innerHTML = "";
+  if (jsonObj.SubChunks == undefined || jsonObj.SubChunks.length == 0) {
+    return;
+  }
+  columnList.forEach(e => {
+    if (columnVisibility[e]) {
+      insertHeaderCell(headerRow, columnNames[e]);
+    }
+  });
+}
+
+// Populates a row in the table
+function insertRow(row, lineIndex, useFilter = false) {
+  if (useFilter && !shouldDrawRow(lineIndex)) {
+    return;
+  }
   columnList.forEach(e => {
     if (!columnVisibility[e]) {
       return;
@@ -312,25 +321,13 @@ function insertRow(row, lineIndex) {
   });
 }
 
-// Loads JSON from the textarea and parses it into an object
-function loadJsonObj() {
-  var jsonInput = document.getElementById("textarea").value;
-  try {
-    jsonObj = JSON.parse(jsonInput);
-  } catch (e) {
-    jsonObj = {};
-    return;
-  }
+//#endregion
 
-  if (subchunkIndex == undefined || subchunkIndex < 0 || subchunkIndex > jsonObj.SubChunks.length) {
-    // Reset the current subchunk index
-    subchunkIndex = 0;
-  }
-}
+//#region Renderers
 
 // Populates the subchunk dropdown selector
-function populateSelector() {
-  loadJsonObj();
+function renderSubchunkSelector() {
+  getJsonObjFromTextarea();
 
   var selector = document.getElementById("subchunkSelector");
   selector.innerHTML = "";
@@ -352,15 +349,7 @@ function populateSelector() {
   selectorListener();
 }
 
-// Listener updating the current global subchunk index and cached subchunk index every time the selector is updated
-function selectorListener() {
-  var selector = document.getElementById("subchunkSelector");
-  subchunkIndex = selector.selectedIndex;
-  localStorage.setItem("subchunkIndex", subchunkIndex);
-  populateTable();
-}
-
-function populateColToggles() {
+function renderColToggles() {
   const colToggles = document.getElementById("column-toggles");
   colToggles.innerHTML = "";
   columnList.forEach(e => {
@@ -387,7 +376,7 @@ function populateColToggles() {
       console.log(`updating checkbox ${e} to ${toggle.checked}`)
       columnVisibility[e] = toggle.checked;
       localStorage.setItem("Visible" + e, toggle.checked);
-      populateTable();
+      renderTable();
     });
     let label = document.createElement("label");
     label.setAttribute("for", e);
@@ -398,39 +387,8 @@ function populateColToggles() {
   });
 }
 
-function dropHandler(event) {
-  event.preventDefault();
-  console.log(event);
-  console.log("drag detected");
-  if (event.dataTransfer.items) {
-    // Access only the first item dropped
-    if (event.dataTransfer.items[0].kind === 'file') {
-      var file = event.dataTransfer.items[0].getAsFile();
-      console.log("Is a file");
-      console.log(file.name);
-      file.text().then(text => {
-        document.getElementById("textarea").value = text;
-        textareaListener();
-        populateSelector();
-      });
-    }
-  } else {
-    console.log("Not a file");
-    console.log(event.dataTransfer.files[0].name);
-  }
-}
-
-// Listener for updating the cache every time the textarea is changed
-function textareaListener() {
-  console.log("updating cache")
-  var jsonInput = document.getElementById("textarea").value;
-  localStorage.setItem("jsonObj", jsonInput);
-  subchunkIndex = 0;
-  populateSelector();
-}
-
 // Populates the table with what is currently in the global jsonObj variable
-function populateTable() {
+function renderTable(useFilter = false) {
   const nameElement = document.getElementById("jsonName");
   nameElement.innerHTML = jsonObj.Name != undefined ? jsonObj.Name : "";
 
@@ -452,9 +410,143 @@ function populateTable() {
     let row = table.insertRow();
     row.setAttribute("class", "mdc-data-table__row");
     row.setAttribute("data-row-id", line.Id);
-    insertRow(row, j);
+    insertRow(row, j, useFilter);
   }
 
+}
+
+//#endregion
+
+//#region Filters
+
+function populateFilter() {
+  let filterColumn = document.getElementById("filter-column");
+  let filterOperation = document.getElementById("filter-operation");
+  let filterTerms = document.getElementById("filter-terms");
+
+  filterColumn.innerHTML = "";
+  columnList.forEach(e => {
+    let text = columnNames[e];
+    if (text == undefined || text == "") {
+      return;
+    }
+    var option = document.createElement("option");
+    option.text = text;
+    option.setAttribute("value", e)
+    filterColumn.add(option);
+  });
+
+  if (localStorage.getItem("filterColumn") != undefined) {
+    filterColumn.value = localStorage.getItem("filterColumn");
+  } else {
+    filterColumn.selectedIndex = -1;
+  }
+
+  if (localStorage.getItem("filterOperation") != undefined) {
+    filterOperation.value = localStorage.getItem("filterOperation");
+  } else {
+    filterOperation.selectedIndex = -1;
+  }
+
+  if (localStorage.getItem("filterTerms") != undefined) {
+    filterTerms.value = localStorage.getItem("filterTerms");
+  } else {
+    filterTerms.value = "";
+  }
+}
+
+function filterListener() {
+  let filterColumn = document.getElementById("filter-column");
+  let filterOperation = document.getElementById("filter-operation");
+  let filterTerms = document.getElementById("filter-terms");
+
+  localStorage.setItem("filterColumn", filterColumn.value);
+  localStorage.setItem("filterOperation", filterOperation.value);
+  localStorage.setItem("filterTerms", filterTerms.value);
+
+  renderTable(true);
+}
+
+function filterClear() {
+  let filterColumn = document.getElementById("filter-column");
+  let filterOperation = document.getElementById("filter-operation");
+  let filterTerms = document.getElementById("filter-terms");
+
+  filterColumn.selectedIndex = -1;
+  filterOperation.selectedIndex = -1;
+  filterTerms.value = "";
+
+  filterListener();
+}
+
+function shouldDrawRow(lineIndex) {
+  let filterColumn = document.getElementById("filter-column").value;
+  let filterOperation = document.getElementById("filter-operation").value;
+  let filterTerms = document.getElementById("filter-terms").value.toLowerCase();
+
+  if (filterColumn == "" || filterOperation == "") {
+    return true;
+  }
+
+  let field = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][filterColumn];
+  if (field == undefined) {
+    return false;
+  }
+  field = field.toLowerCase();
+  switch (filterOperation) {
+    case "is":
+      if (csvColumns.includes(filterColumn)) {
+        return matchCsv(field, filterTerms);
+      }
+      return field.includes(filterTerms);
+    case "is-not":
+      if (csvColumns.includes(filterColumn)) {
+        return !matchCsv(field, filterTerms);
+      }
+      return !field.includes(filterTerms);
+    default:
+      return true;
+  }
+}
+
+function matchCsv(csvValue, term) {
+  return csvValue.split(',').map(e => e.trim()).includes(term);
+}
+
+//#endregion
+
+//#region Handlers/Listeners 
+
+// Handles drag & drop events on the textarea
+function dropHandler(event) {
+  event.preventDefault();
+  console.log(event);
+  console.log("drag detected");
+  if (event.dataTransfer.items) {
+    // Access only the first item dropped
+    if (event.dataTransfer.items[0].kind === 'file') {
+      var file = event.dataTransfer.items[0].getAsFile();
+      console.log("Is a file");
+      console.log(file.name);
+      file.text().then(text => {
+        document.getElementById("textarea").value = text;
+        textareaListener();
+        renderSubchunkSelector();
+      });
+    }
+  } else {
+    console.log("Not a file");
+    console.log(event.dataTransfer.files[0].name);
+  }
+}
+
+// Listener for updating the cache every time the textarea is changed
+function textareaListener() {
+  console.log("updating cache")
+  var jsonInput = document.getElementById("textarea").value;
+  localStorage.setItem("jsonObj", jsonInput);
+  subchunkIndex = 0;
+  renderSubchunkSelector();
 }
 
 // Populates the text area with what is currenly in the global jsonObj variable
@@ -464,3 +556,24 @@ function populateTextArea() {
   textbox.value = textToSet;
   localStorage.setItem("jsonObj", textToSet);
 }
+
+function clearAll() {
+  console.log("clearing");
+  localStorage.clear();
+  jsonObj = {};
+  document.getElementById("textarea").value = "";
+  renderSubchunkSelector();
+  renderTable();
+  renderColToggles();
+  populateFilter();
+}
+
+// Listener updating the current global subchunk index and cached subchunk index every time the selector is updated
+function selectorListener() {
+  var selector = document.getElementById("subchunkSelector");
+  subchunkIndex = selector.selectedIndex;
+  localStorage.setItem("subchunkIndex", subchunkIndex);
+  renderTable();
+}
+
+//#endregion

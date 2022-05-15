@@ -50,7 +50,9 @@
       <span>Clear</span>
     </button>
   </p>
+
   <hr class="solid">
+
   <h3>
     Subchunks
   </h3>
@@ -58,7 +60,9 @@
   <div>
     <select id="subchunkSelector" onchange="selectorListener()"></select>
   </div>
+
   <hr class="solid">
+
   <h3>
     Column Visibility Toggles
   </h3>
@@ -66,7 +70,24 @@
   <div>
     <ul id="column-toggles" style="list-style-type: none;"></ul>
   </div>
+
   <hr class="solid">
+
+  <h3>Filters</h3>
+
+  <div id="filter-container">
+    <select id="filter-column"></select>
+    <select id="filter-operation">
+      <option value="is">contains</option>
+      <option value="is-not">does not contain</option>
+    </select>
+    <input id="filter-terms"></input>
+    <button onclick="filterListener()">Apply</button>
+    <button onclick="filterClear()">Clear</button>
+  </div>
+
+  <hr class="solid">
+
   <h3>
     Data
   </h3>

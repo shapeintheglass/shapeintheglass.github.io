@@ -2,6 +2,7 @@
 
 var jsonObj;
 var subchunkIndex;
+var tags;
 var columnVisibility = {};
 
 // Column order
@@ -67,6 +68,55 @@ function getJsonObjFromTextarea() {
     // Reset the current subchunk index
     subchunkIndex = 0;
   }
+
+  // Run analytics
+  analytics();
+}
+
+function getTagsFromCsv(csvStr) {
+  if (csvStr == undefined) {
+    return [];
+  }
+  return csvStr.split(',').map(e => {
+    e = e.trim();
+    if (e.startsWith("-")) {
+      e = e.substr(1);
+    }
+    return e;
+  });
+}
+
+function analytics() {
+  let analyticsSubchunk = document.getElementById("analytics-num-subchunks");
+  let analyticsLine = document.getElementById("analytics-num-lines");
+  let analyticsTags = document.getElementById("analytics-num-tags");
+  let analyticsAllTags = document.getElementById("analytics-all-tags");
+  let numSubChunks = jsonObj.SubChunks.length;
+
+  let numLines = 0;
+  let tags = new Set();
+  jsonObj.SubChunks.forEach(subchunk => {
+    numLines += subchunk.Lines.length;
+    subchunk.Lines.forEach(line => {
+      let spkrTags = getTagsFromCsv(line['Spkr']);
+      let trgtTags = getTagsFromCsv(line['Trgt']);
+      spkrTags.forEach(tag => tags.add(tag));
+      trgtTags.forEach(tag => tags.add(tag));
+    });
+  });
+  analyticsSubchunk.innerHTML = numSubChunks;
+  analyticsLine.innerHTML = numLines;
+  analyticsTags.innerHTML = tags.size;
+  let tagsArr = Array.from(tags);
+  // Case insensitive sort shamelessly copied from stackoverflow
+  tagsArr.sort(function (a, b) {
+    if (a.toLowerCase() < b.toLowerCase()) return -1;
+    if (a.toLowerCase() > b.toLowerCase()) return 1;
+    return 0;
+  });
+  let tagsStr = "";
+  tagsArr.forEach(tag => tagsStr += tag + "\n");
+  analyticsAllTags.value = tagsStr;
 }
 
 //#region Cell operations

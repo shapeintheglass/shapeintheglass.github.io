@@ -63,12 +63,17 @@
 
   <hr class="solid">
 
-  <h3>
-    Column Visibility Toggles
-  </h3>
-  <p>Toggle which columns are visible.</p>
+  <h3>Analytics</h3>
+
+  Basic info about the current file will appear here.
+
   <div>
-    <ul id="column-toggles" style="list-style-type: none;"></ul>
+    <p>Subchunks: <span id="analytics-num-subchunks" style="font-weight: bold"></span> | Lines: <span
+        id="analytics-num-lines" style="font-weight: bold"></span>
+      | Tags: <span id="analytics-num-tags" style="font-weight: bold"></span></p>
+    <p>Tags used (applies to current imported file only):</p>
+    <textarea readonly rows="8" cols="40" placeholder="Tags used in the current imported file will appear here"
+      id="analytics-all-tags"></textarea>
   </div>
 
   <hr class="solid">
@@ -84,6 +89,16 @@
     <input id="filter-terms"></input>
     <button onclick="filterListener()">Apply</button>
     <button onclick="filterClear()">Clear</button>
+  </div>
+
+  <hr class="solid">
+
+  <h3>
+    Column Visibility Toggles
+  </h3>
+  <p>Toggle which columns are visible.</p>
+  <div>
+    <ul id="column-toggles" style="list-style-type: none;"></ul>
   </div>
 
   <hr class="solid">

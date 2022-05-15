@@ -74,18 +74,9 @@ function getJsonObjFromTextarea() {
 // Adds a cell to the header
 function insertHeaderCell(row, name) {
   let cell = document.createElement("th");
-  cell.setAttribute("class", "mdc-data-table__header-cell");
-  cell.setAttribute("role", "columnheader");
-  cell.setAttribute("scope", "col");
-  cell.setAttribute("aria-sort", "none");
   cell.setAttribute("style", "font-weight: bold;");
-  cell.setAttribute("data-column-id", name);
-
   let headerCellWrapper = document.createElement("div");
-  headerCellWrapper.setAttribute("class", "mdc-data-table__header-cell-wrapper");
-
   let headerCellLabel = document.createElement("div");
-  headerCellLabel.setAttribute("class", "mdc-data-table__header-cell-label");
   headerCellLabel.innerHTML = name;
 
   cell.appendChild(headerCellWrapper);
@@ -97,14 +88,12 @@ function insertHeaderCell(row, name) {
 function insertLineIdCell(row, lineIndex) {
   let cell = row.insertCell();
   cell.setAttribute("style", "text-align: center");
-  cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = lineIndex;
 }
 
 // Inserts a special cell that duplicates the current row when clicked
 function insertDuplicateCell(row, lineIndex) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconDupeSvg;
   cell.title = "Duplicate this row";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Dupe"));
@@ -113,7 +102,6 @@ function insertDuplicateCell(row, lineIndex) {
 // Inserts a special cell that inserts a new row when clicked
 function insertAddAboveCell(row, lineIndex) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconAddRowBeforeSvg;
   cell.title = "Add row above";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddAbove"));
@@ -122,7 +110,6 @@ function insertAddAboveCell(row, lineIndex) {
 // Inserts a special cell that inserts a new row when clicked
 function insertAddBelowCell(row, lineIndex) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconAddRowAfterSvg;
   cell.title = "Add row below";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddBelow"));
@@ -131,7 +118,6 @@ function insertAddBelowCell(row, lineIndex) {
 // Inserts a special cell that removes the current row when clicked
 function insertRemoveCell(row, lineIndex) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
   cell.innerHTML = iconRemoveRowSvg;
   cell.title = "Delete row";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Del"));
@@ -152,7 +138,8 @@ function mutateTable(subchunkIndex, lineIndex, action) {
       break;
     case "Dupe":
       var currLine = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex];
-      jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 0, currLine);
+      var dupeLine = JSON.parse(JSON.stringify(currLine));
+      jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 0, dupeLine);
       break;
   }
   renderTable();
@@ -161,7 +148,6 @@ function mutateTable(subchunkIndex, lineIndex, action) {
 // Inserts a checkbox cell
 function insertCheckboxCell(row, lineIndex, getFromJsonObjHelper, updateJsonObjHelper) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
   const input = document.createElement("input");
   input.setAttribute("type", "checkbox");
   input.checked = getFromJsonObjHelper(subchunkIndex, lineIndex);
@@ -176,7 +162,6 @@ function insertCheckboxCell(row, lineIndex, getFromJsonObjHelper, updateJsonObjH
 // Inserts a special color selector cell
 function insertColorCell(row, lineIndex) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
   const input = document.createElement("input");
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"];
   input.setAttribute("type", "color");
@@ -199,24 +184,12 @@ function insertColorCell(row, lineIndex) {
 // Inserts an editable cell
 function insertEditableCell(row, lineIndex, fieldName) {
   let cell = row.insertCell();
-  cell.setAttribute("class", "mdc-data-table__cell");
-
   var labelWrapper = document.createElement("label");
-  labelWrapper.setAttribute("class", "mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label");
-
-  var spanOutline = document.createElement("span");
-  spanOutline.setAttribute("class", "mdc-notched-outline");
-  spanOutline.innerHTML = `<span class="mdc-notched-outline__leading"></span>
-  <span class="mdc-notched-outline__trailing"></span>`;
-
   var spanResizer = document.createElement("span");
-  spanResizer.setAttribute("class", "mdc-text-field__resizer");
-
   var input = document.createElement("textarea");
   input.setAttribute("rows", 3);
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
-  input.setAttribute("class", "mdc-text-field__input")
 
   switch (fieldName) {
     case "Evt":
@@ -251,7 +224,6 @@ function insertEditableCell(row, lineIndex, fieldName) {
     }
   });
   spanResizer.appendChild(input);
-  labelWrapper.appendChild(spanOutline);
   labelWrapper.appendChild(spanResizer);
   cell.appendChild(labelWrapper);
 }
@@ -275,10 +247,11 @@ function insertHeader() {
 }
 
 // Populates a row in the table
-function insertRow(row, lineIndex, useFilter = false) {
+function insertRow(table, lineIndex, useFilter = false) {
   if (useFilter && !shouldDrawRow(lineIndex)) {
     return;
   }
+  let row = table.insertRow();
   columnList.forEach(e => {
     if (!columnVisibility[e]) {
       return;
@@ -406,11 +379,7 @@ function renderTable(useFilter = false) {
   }
   var subchunk = jsonObj.SubChunks[subchunkIndex];
   for (var j = 0; j < subchunk.Lines.length; j++) {
-    var line = subchunk.Lines[j];
-    let row = table.insertRow();
-    row.setAttribute("class", "mdc-data-table__row");
-    row.setAttribute("data-row-id", line.Id);
-    insertRow(row, j, useFilter);
+    insertRow(table, j, useFilter);
   }
 
 }

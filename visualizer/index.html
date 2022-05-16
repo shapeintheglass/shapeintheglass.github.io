@@ -11,17 +11,7 @@
       font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
     }
 
-    table {
-      border: 1px solid;
-    }
-
     td {
-      padding: 5px;
-    }
-
-    li {
-      display: inline;
-      margin: 15px;
       padding: 5px;
     }
   </style>
@@ -51,36 +41,42 @@
     </button>
   </p>
 
-  <hr class="solid">
 
-  <h3>
-    Subchunks
-  </h3>
-  <p>Select subchunk to edit here.</p>
-  <div>
-    <select id="subchunkSelector" onchange="selectorListener()"></select>
-  </div>
+  <h3>Analytics and Testing</h3>
 
-  <hr class="solid">
+  <div>Subchunks: <span id="analytics-num-subchunks" style="font-weight: bold"></span>
+    | Lines: <span id="analytics-num-lines" style="font-weight: bold"></span>
+    | Tags: <span id="analytics-num-tags" style="font-weight: bold"></span>
+    | Events: <span id="analytics-num-events" style="font-weight: bold"></span></div>
 
-  <h3>Analytics</h3>
-  <div>Subchunks: <span id="analytics-num-subchunks" style="font-weight: bold"></span> | Lines: <span
-      id="analytics-num-lines" style="font-weight: bold"></span></div>
+  <table style="width: 10%; border: 1px solid; border-style: groove;">
+    <tr>
+      <td style="vertical-align: top; ">
+        <div>
+          <p>Events:</p>
+          <select id="analytics-all-events" onchange="onAnalyticsEventUpdated()"></select>
+        </div>
 
-  <span>
-    <span style="display:inline-block">
-      <p>Tags used (<span id="analytics-num-tags" style="font-weight: bold"></span>):</p> <textarea readonly rows="15"
-        cols="40" placeholder="Tags used in the current imported file will appear here"
-        id="analytics-all-tags"></textarea>
-    </span>
+        <div>
+          <p>Tags related to selected event:</p>
+          <div style="overflow: scroll-auto; max-height:300px; width:300px; overflow-x: hidden;">
+            <ul id="analytics-all-tags"></ul>
+          </div>
+        </div>
 
-    <span style="display:inline-block">
-      <p>Events used (<span id="analytics-num-events" style="font-weight: bold"></span>):</p> <textarea readonly
-        rows="15" cols="100" placeholder="Events used in the current imported file will appear here"
-        id="analytics-all-events"></textarea>
-    </span>
-
-  </span>
+        <div>
+          <button onclick="onFireEvent()">Fire Event</button>
+        </div>
+      </td>
+      <td style="width:10%">
+        <div>
+          <textarea readonly id="test-output" placeholder="Test conversation text" rows="20" cols="60"
+            style="border: 1px solid; border-style: groove;"></textarea>
+        </div>
+        <div id="convo-options"></div>
+      </td>
+    </tr>
+  </table>
 
   <hr class="solid">
 
@@ -112,11 +108,17 @@
   <h3>
     Data
   </h3>
+
+  <p>Select subchunk to edit here.</p>
+  <div>
+    <select id="subchunkSelector" onchange="selectorListener()"></select>
+  </div>
+
   <h4 id="jsonName"></h4>
   <p id="locInfo"></p>
   <div>
     <div>
-      <table aria-label="Dialog table">
+      <table aria-label="Dialog table" style="border: 1px">
         <thead>
           <tr id="headerrow">
           </tr>

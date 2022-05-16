@@ -1,9 +1,15 @@
 'use strict';
 
 var jsonObj;
+var eventMap = {};
 var subchunkIndex;
 var tags;
+
 var columnVisibility = {};
+var subchunkToTagsMap = {};
+var eventToSubchunkMap = {};
+// Map event name to index to lines
+var eventToLinesMap = {};
 
 // Column order
 const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
@@ -13,6 +19,9 @@ const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink=
 const iconAddRowBeforeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,14A2,2 0 0,0 20,12H4A2,2 0 0,0 2,14V21H4V19H8V21H10V19H14V21H16V19H20V21H22V14M4,14H8V17H4V14M10,14H14V17H10V14M20,14V17H16V14H20M11,10H13V7H16V5H13V2H11V5H8V7H11V10Z" /></svg>`;
 const iconRemoveRowSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M9.41,13L12,15.59L14.59,13L16,14.41L13.41,17L16,19.59L14.59,21L12,18.41L9.41,21L8,19.59L10.59,17L8,14.41L9.41,13M22,9A2,2 0 0,1 20,11H4A2,2 0 0,1 2,9V6A2,2 0 0,1 4,4H20A2,2 0 0,1 22,6V9M4,9H8V6H4V9M10,9H14V6H10V9M16,9H20V6H16V9Z" /></svg>`;
 const iconSortSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z" /></svg>`;
+const iconAddSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>`;
+const iconRemoveSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M19,13H5V11H19V13Z" /></svg>`;
+
 
 // Map of column id to readable header name
 const columnNames = {
@@ -56,11 +65,22 @@ window.onload = function () {
 
 window.ondrop = dropHandler;
 
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 's') {
+    console.log("save keypress detected");
+    e.preventDefault();
+    populateTextArea();
+  }
+});
+
 // Loads JSON from the textarea and parses it into an object
 function getJsonObjFromTextarea() {
   var jsonInput = document.getElementById("textarea").value;
+  eventMap = {};
+  jsonObj = {};
   try {
     jsonObj = JSON.parse(jsonInput);
+    jsonObj.SubChunks.forEach
   } catch (e) {
     jsonObj = {};
     // Update analytics
@@ -77,13 +97,13 @@ function getJsonObjFromTextarea() {
   analytics();
 }
 
-function getTagsFromCsv(csvStr) {
+function getTagsFromCsv(csvStr, preserveOperator = false) {
   if (csvStr == undefined) {
     return [];
   }
   return csvStr.split(',').map(e => {
     e = e.trim();
-    if (e.startsWith("-")) {
+    if (!preserveOperator && e.startsWith("-")) {
       e = e.substr(1);
     }
     return e;
@@ -100,6 +120,9 @@ function getEventName(eventStr) {
 
 // In-place case-insensitive sort, shamelessly copied from stackoverflow
 function arrCaseInsensitiveSort(arr) {
+  if (arr.length <= 1) {
+    return;
+  }
   arr.sort(function (a, b) {
     if (a.toLowerCase() < b.toLowerCase()) return -1;
     if (a.toLowerCase() > b.toLowerCase()) return 1;
@@ -107,20 +130,34 @@ function arrCaseInsensitiveSort(arr) {
   });
 }
 
+//#region analytics
+
+function getEventIdInSubchunk(eventStr, subchunkName) {
+  return "(" + subchunkName + ") " + getEventName(eventStr);
+}
+
 function analytics() {
   let analyticsSubchunk = document.getElementById("analytics-num-subchunks");
   let analyticsLine = document.getElementById("analytics-num-lines");
   let analyticsTags = document.getElementById("analytics-num-tags");
-  let analyticsAllTags = document.getElementById("analytics-all-tags");
   let analyticsEvents = document.getElementById("analytics-num-events");
   let analyticsAllEvents = document.getElementById("analytics-all-events");
+  let analyticsAllTags = document.getElementById("analytics-all-tags");
+  let testOutput = document.getElementById("test-output");
 
   analyticsSubchunk.innerHTML = "";
   analyticsLine.innerHTML = "";
   analyticsTags.innerHTML = "";
-  analyticsAllTags.value = "";
+  analyticsAllTags.innerHTML = "";
+  testOutput.value = "";
+
   analyticsEvents.innerHTML = "";
-  analyticsAllEvents.value = "";
+  analyticsEvents.selectedIndex = -1;
+  analyticsAllEvents.innerHTML = "";
+
+  eventToSubchunkMap = {};
+  subchunkToTagsMap = {};
+  eventToLinesMap = {};
 
   if (jsonObj.SubChunks == undefined) {
     return;
@@ -133,30 +170,185 @@ function analytics() {
 
   jsonObj.SubChunks.forEach(subchunk => {
     numLines += subchunk.Lines.length;
+    let subchunkName = subchunk.Name;
+    subchunkToTagsMap[subchunkName] = new Set();
     subchunk.Lines.forEach(line => {
+      let eventName = line['Evt'];
+
+      // Split out event index and add to event lines map
+      let tokens = eventName.split(":");
+      let shortEventName = tokens[0];
+      let eventSubTag = tokens.length > 0 ? tokens[1] : "";
+      if (eventToLinesMap[shortEventName] == undefined) {
+        eventToLinesMap[shortEventName] = {};
+      }
+      if (eventToLinesMap[shortEventName][eventSubTag] == undefined) {
+        eventToLinesMap[shortEventName][eventSubTag] = new Array();
+      }
+      eventToLinesMap[shortEventName][eventSubTag].push(line);
+
+      events.add(shortEventName);
+      eventToSubchunkMap[shortEventName] = subchunkName;
+
       let spkrTags = getTagsFromCsv(line['Spkr']);
       let trgtTags = getTagsFromCsv(line['Trgt']);
-      spkrTags.forEach(tag => tags.add(tag));
-      trgtTags.forEach(tag => tags.add(tag));
-      events.add("[" + subchunk.Name + "] " + getEventName(line['Evt']));
+      spkrTags.forEach(tag => {
+        let sanitized = tag.toLowerCase();
+        tags.add(sanitized);
+        subchunkToTagsMap[subchunkName].add(sanitized);
+      });
+      trgtTags.forEach(tag => {
+        let sanitized = tag.toLowerCase();
+        tags.add(sanitized)
+        subchunkToTagsMap[subchunkName].add(sanitized);
+      });
     });
   });
+
   analyticsSubchunk.innerHTML = numSubChunks;
   analyticsLine.innerHTML = numLines;
   analyticsTags.innerHTML = tags.size;
-  let tagsArr = Array.from(tags);
-  arrCaseInsensitiveSort(tagsArr);
-  let tagsStr = "";
-  tagsArr.forEach(tag => tagsStr += tag + "\n");
-  analyticsAllTags.value = tagsStr;
-
   analyticsEvents.innerHTML = events.size;
-  let eventsStr = "";
   let eventsArr = Array.from(events);
   arrCaseInsensitiveSort(eventsArr);
-  eventsArr.forEach(event => eventsStr += event + "\n");
-  analyticsAllEvents.value = eventsStr;
+  eventsArr.forEach(eventName => {
+    let option = document.createElement("option");
+    option.text = eventName;
+    analyticsAllEvents.add(option);
+  });
+
+  onAnalyticsEventUpdated();
 }
+
+function onAnalyticsEventUpdated() {
+  console.log("updating analytics tags for subchunk");
+  // Redraw tags for current selected event
+  let analyticsAllEvents = document.getElementById("analytics-all-events");
+  let analyticsAllTags = document.getElementById("analytics-all-tags");
+  analyticsAllTags.innerHTML = "";
+
+  let subchunkName = eventToSubchunkMap[analyticsAllEvents.value];
+  let tagsArr = Array.from(subchunkToTagsMap[subchunkName]);
+  arrCaseInsensitiveSort(tagsArr);
+  tagsArr.forEach(tag => {
+    let item = document.createElement("li");
+    let toggle = document.createElement("input");
+    let label = document.createElement("label");
+    item.setAttribute("style", "list-style:none");
+    toggle.setAttribute("type", "checkbox");
+    toggle.setAttribute("id", tag);
+    toggle.checked = true;
+    label.setAttribute("for", tag);
+    label.innerHTML = tag;
+    item.appendChild(toggle);
+    item.appendChild(label);
+    analyticsAllTags.appendChild(item);
+  });
+}
+
+
+function reqsMetForTags(tagsSet, reqTags) {
+  for (var i = 0; i < reqTags.length; i++) {
+    let tag = reqTags[i];
+    let lowerCase = tag.toLowerCase();
+    if (lowerCase.startsWith("-")) {
+      // Negate operation
+      lowerCase = lowerCase.substr(1);
+      if (tagsSet.has(lowerCase)) {
+        return false;
+      }
+    } else if (!tagsSet.has(lowerCase)) {
+      // Contains operation, current tags does not have this tag
+      return false;
+    }
+  }
+  return true;
+}
+
+// TODO: Don't treat all tags as global scope
+function reqsMetForLine(tagsSet, line) {
+  // Verify all speaker tags
+  let spkrTagsMet = reqsMetForTags(tagsSet, getTagsFromCsv(line.Spkr, /* preserve operator */ true));
+  if (!spkrTagsMet) {
+    return false;
+  }
+  // Verify all target tags
+  let trgtTagsMet = reqsMetForTags(tagsSet, getTagsFromCsv(line.Trgt, /* preserve operator */ true));
+  if (!trgtTagsMet) {
+    return false;
+  }
+  return true;
+}
+
+function onFireEvent() {
+  let analyticsAllEvents = document.getElementById("analytics-all-events");
+  let analyticsAllTags = document.getElementById("analytics-all-tags");
+  let testOutput = document.getElementById("test-output");
+  var event = analyticsAllEvents.value;
+  var liTags = analyticsAllTags.getElementsByTagName("li");
+  let tagSet = new Set();
+  for (var i = 0; i < liTags.length; i++) {
+    var e = liTags[i];
+    var label = e.getElementsByTagName("label")[0].getAttribute("for");
+    var value = e.getElementsByTagName("input")[0].checked;
+    if (value) {
+      tagSet.add(label);
+    }
+
+  }
+
+  console.log(`firing event ${event}`);
+  // Start w/ undefined index
+  let eventLines = eventToLinesMap[event];
+
+  let indeces = Object.keys(eventLines);
+  indeces.sort();
+
+  var toWrite = "";
+  indeces.forEach(i => {
+    let seqGroup = eventLines[i];
+    seqGroup.forEach(line => {
+      if (reqsMetForLine(tagSet, line)) {
+        if (i == "undefined") {
+          i = "";
+        }
+        toWrite += `${i}: ${line["Txt"]}\n`;
+        getLineActions(line).forEach(l => toWrite += l);
+      }
+    });
+  });
+  testOutput.value = toWrite;
+}
+
+function getLineActions(line) {
+  let toReturn = new Array();
+  let actions = line["Dscr"]?.split(',');
+  if (actions == undefined) {
+    return toReturn;
+  }
+  actions.forEach(token => {
+    let sanitized = token.trim().toLowerCase();
+    if (sanitized.startsWith("branch:")) {
+      let nextBranch = sanitized.substr(7);
+      toReturn.push(`\tGOTO: ${nextBranch}\n`);
+    } else if (sanitized.startsWith("addspeakertag:")) {
+      let newTag = sanitized.substr(14);
+      toReturn.push(`\tADD SPKR: ${newTag}\n`);
+    } else if (sanitized.startsWith("addtargettag:")) {
+      let newTag = sanitized.substr(13);
+      toReturn.push(`\tADD TRGT: ${newTag}\n`);
+    } else if (sanitized.startsWith("removespeakertag:")) {
+      let newTag = sanitized.substr(17);
+      toReturn.push(`\tREM SPKR: ${newTag}\n`);
+    } else if (sanitized.startsWith("removetargettag:")) {
+      let newTag = sanitized.substr(16);
+      toReturn.push(`\tREM TRGT: ${newTag}\n`);
+    }
+  });
+  return toReturn;
+}
+
+//#endregion
 
 //#region Cell operations
 
@@ -428,6 +620,7 @@ function renderColToggles() {
       return;
     }
     let spanWrapper = document.createElement("li");
+    spanWrapper.setAttribute("style", "display: inline;margin: 15px;padding: 5px;");
     let toggle = document.createElement("input");
     toggle.setAttribute("type", "checkbox");
     toggle.setAttribute("id", e);

@@ -237,7 +237,9 @@ function onAnalyticsEventUpdated() {
     item.setAttribute("style", "list-style:none");
     toggle.setAttribute("type", "checkbox");
     toggle.setAttribute("id", tag);
-    toggle.checked = true;
+
+    // Hack: leave checked by default if it's an NPC tag or the player
+    toggle.checked = tag.includes(":") || tag == "player";
     label.setAttribute("for", tag);
     label.innerHTML = tag;
     item.appendChild(toggle);

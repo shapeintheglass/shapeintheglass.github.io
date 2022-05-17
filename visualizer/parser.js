@@ -1,18 +1,10 @@
 'use strict';
 
 var jsonObj;
-var eventMap = {};
 var subchunkIndex;
-var tags;
-
-var columnVisibility = {};
-var subchunkToTagsMap = {};
-var eventToSubchunkMap = {};
-// Map event name to index to lines
-var eventToLinesMap = {};
 
 // Column order
-const columnList = ["Dupe", "AddAbove", "AddBelow", "Del", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
+const columnList = ["Actions", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
 
 const iconDupeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M11,17H4A2,2 0 0,1 2,15V3A2,2 0 0,1 4,1H16V3H4V15H11V13L15,16L11,19V17M19,21V7H8V13H6V7A2,2 0 0,1 8,5H19A2,2 0 0,1 21,7V21A2,2 0 0,1 19,23H8A2,2 0 0,1 6,21V19H8V21H19Z" /></svg>`;
 const iconAddRowAfterSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 24 24"><path d="M22,10A2,2 0 0,1 20,12H4A2,2 0 0,1 2,10V3H4V5H8V3H10V5H14V3H16V5H20V3H22V10M4,10H8V7H4V10M10,10H14V7H10V10M20,10V7H16V10H20M11,14H13V17H16V19H13V22H11V19H8V17H11V14Z" /></svg>`;
@@ -25,10 +17,7 @@ const iconRemoveSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http
 
 // Map of column id to readable header name
 const columnNames = {
-  "Dupe": "",
-  "AddBelow": "",
-  "AddAbove": "",
-  "Del": "",
+  "Actions": "Actions",
   "Obj1": "Object 1",
   "Obj2": "Object 2",
   "LineId": "Index",
@@ -58,12 +47,8 @@ window.onload = function () {
   if (cachedSubchunkIndex != null) {
     subchunkIndex = cachedSubchunkIndex;
   }
-  populateFilter();
-  renderColToggles();
   renderSubchunkSelector();
 }
-
-window.ondrop = dropHandler;
 
 document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === 's') {
@@ -76,15 +61,11 @@ document.addEventListener('keydown', e => {
 // Loads JSON from the textarea and parses it into an object
 function getJsonObjFromTextarea() {
   var jsonInput = document.getElementById("textarea").value;
-  eventMap = {};
   jsonObj = {};
   try {
     jsonObj = JSON.parse(jsonInput);
-    jsonObj.SubChunks.forEach
   } catch (e) {
     jsonObj = {};
-    // Update analytics
-    analytics();
     return;
   }
 
@@ -92,9 +73,6 @@ function getJsonObjFromTextarea() {
     // Reset the current subchunk index
     subchunkIndex = 0;
   }
-
-  // Run analytics
-  analytics();
 }
 
 function getTagsFromCsv(csvStr, preserveOperator = false) {
@@ -130,234 +108,13 @@ function arrCaseInsensitiveSort(arr) {
   });
 }
 
-//#region analytics
-
-function getEventIdInSubchunk(eventStr, subchunkName) {
-  return "(" + subchunkName + ") " + getEventName(eventStr);
-}
-
-function analytics() {
-  let analyticsSubchunk = document.getElementById("analytics-num-subchunks");
-  let analyticsLine = document.getElementById("analytics-num-lines");
-  let analyticsTags = document.getElementById("analytics-num-tags");
-  let analyticsEvents = document.getElementById("analytics-num-events");
-  let analyticsAllEvents = document.getElementById("analytics-all-events");
-  let analyticsAllTags = document.getElementById("analytics-all-tags");
-  let testOutput = document.getElementById("test-output");
-
-  analyticsSubchunk.innerHTML = "";
-  analyticsLine.innerHTML = "";
-  analyticsTags.innerHTML = "";
-  analyticsAllTags.innerHTML = "";
-  testOutput.value = "";
-
-  analyticsEvents.innerHTML = "";
-  analyticsEvents.selectedIndex = -1;
-  analyticsAllEvents.innerHTML = "";
-
-  eventToSubchunkMap = {};
-  subchunkToTagsMap = {};
-  eventToLinesMap = {};
-
-  if (jsonObj.SubChunks == undefined) {
-    return;
-  }
-  let numSubChunks = jsonObj.SubChunks.length;
-
-  let numLines = 0;
-  let tags = new Set();
-  let events = new Set();
-
-  jsonObj.SubChunks.forEach(subchunk => {
-    numLines += subchunk.Lines.length;
-    let subchunkName = subchunk.Name;
-    subchunkToTagsMap[subchunkName] = new Set();
-    subchunk.Lines.forEach(line => {
-      let eventName = line['Evt'];
-
-      // Split out event index and add to event lines map
-      let tokens = eventName.split(":");
-      let shortEventName = tokens[0];
-      let eventSubTag = tokens.length > 0 ? tokens[1] : "";
-      if (eventToLinesMap[shortEventName] == undefined) {
-        eventToLinesMap[shortEventName] = {};
-      }
-      if (eventToLinesMap[shortEventName][eventSubTag] == undefined) {
-        eventToLinesMap[shortEventName][eventSubTag] = new Array();
-      }
-      eventToLinesMap[shortEventName][eventSubTag].push(line);
-
-      events.add(shortEventName);
-      eventToSubchunkMap[shortEventName] = subchunkName;
-
-      let spkrTags = getTagsFromCsv(line['Spkr']);
-      let trgtTags = getTagsFromCsv(line['Trgt']);
-      spkrTags.forEach(tag => {
-        let sanitized = tag.toLowerCase();
-        tags.add(sanitized);
-        subchunkToTagsMap[subchunkName].add(sanitized);
-      });
-      trgtTags.forEach(tag => {
-        let sanitized = tag.toLowerCase();
-        tags.add(sanitized)
-        subchunkToTagsMap[subchunkName].add(sanitized);
-      });
-    });
-  });
-
-  analyticsSubchunk.innerHTML = numSubChunks;
-  analyticsLine.innerHTML = numLines;
-  analyticsTags.innerHTML = tags.size;
-  analyticsEvents.innerHTML = events.size;
-  let eventsArr = Array.from(events);
-  arrCaseInsensitiveSort(eventsArr);
-  eventsArr.forEach(eventName => {
-    let option = document.createElement("option");
-    option.text = eventName;
-    analyticsAllEvents.add(option);
-  });
-
-  onAnalyticsEventUpdated();
-}
-
-function onAnalyticsEventUpdated() {
-  console.log("updating analytics tags for subchunk");
-  // Redraw tags for current selected event
-  let analyticsAllEvents = document.getElementById("analytics-all-events");
-  let analyticsAllTags = document.getElementById("analytics-all-tags");
-  analyticsAllTags.innerHTML = "";
-
-  let subchunkName = eventToSubchunkMap[analyticsAllEvents.value];
-  let tagsArr = Array.from(subchunkToTagsMap[subchunkName]);
-  arrCaseInsensitiveSort(tagsArr);
-  tagsArr.forEach(tag => {
-    let item = document.createElement("li");
-    let toggle = document.createElement("input");
-    let label = document.createElement("label");
-    item.setAttribute("style", "list-style:none");
-    toggle.setAttribute("type", "checkbox");
-    toggle.setAttribute("id", tag);
-
-    // Hack: leave checked by default if it's an NPC tag or the player
-    toggle.checked = tag.includes(":") || tag == "player";
-    label.setAttribute("for", tag);
-    label.innerHTML = tag;
-    item.appendChild(toggle);
-    item.appendChild(label);
-    analyticsAllTags.appendChild(item);
-  });
-}
-
-
-function reqsMetForTags(tagsSet, reqTags) {
-  for (var i = 0; i < reqTags.length; i++) {
-    let tag = reqTags[i];
-    let lowerCase = tag.toLowerCase();
-    if (lowerCase.startsWith("-")) {
-      // Negate operation
-      lowerCase = lowerCase.substr(1);
-      if (tagsSet.has(lowerCase)) {
-        return false;
-      }
-    } else if (!tagsSet.has(lowerCase)) {
-      // Contains operation, current tags does not have this tag
-      return false;
-    }
-  }
-  return true;
-}
-
-// TODO: Don't treat all tags as global scope
-function reqsMetForLine(tagsSet, line) {
-  // Verify all speaker tags
-  let spkrTagsMet = reqsMetForTags(tagsSet, getTagsFromCsv(line.Spkr, /* preserve operator */ true));
-  if (!spkrTagsMet) {
-    return false;
-  }
-  // Verify all target tags
-  let trgtTagsMet = reqsMetForTags(tagsSet, getTagsFromCsv(line.Trgt, /* preserve operator */ true));
-  if (!trgtTagsMet) {
-    return false;
-  }
-  return true;
-}
-
-function onFireEvent() {
-  let analyticsAllEvents = document.getElementById("analytics-all-events");
-  let analyticsAllTags = document.getElementById("analytics-all-tags");
-  let testOutput = document.getElementById("test-output");
-  var event = analyticsAllEvents.value;
-  var liTags = analyticsAllTags.getElementsByTagName("li");
-  let tagSet = new Set();
-  for (var i = 0; i < liTags.length; i++) {
-    var e = liTags[i];
-    var label = e.getElementsByTagName("label")[0].getAttribute("for");
-    var value = e.getElementsByTagName("input")[0].checked;
-    if (value) {
-      tagSet.add(label);
-    }
-
-  }
-
-  console.log(`firing event ${event}`);
-  // Start w/ undefined index
-  let eventLines = eventToLinesMap[event];
-
-  let indeces = Object.keys(eventLines);
-  indeces.sort();
-
-  var toWrite = "";
-  indeces.forEach(i => {
-    let seqGroup = eventLines[i];
-    seqGroup.forEach(line => {
-      if (reqsMetForLine(tagSet, line)) {
-        if (i == "undefined") {
-          i = "";
-        }
-        toWrite += `${i}: ${line["Txt"]}\n`;
-        getLineActions(line).forEach(l => toWrite += l);
-      }
-    });
-  });
-  testOutput.value = toWrite;
-}
-
-function getLineActions(line) {
-  let toReturn = new Array();
-  let actions = line["Dscr"]?.split(',');
-  if (actions == undefined) {
-    return toReturn;
-  }
-  actions.forEach(token => {
-    let sanitized = token.trim().toLowerCase();
-    if (sanitized.startsWith("branch:")) {
-      let nextBranch = sanitized.substr(7);
-      toReturn.push(`\tGOTO: ${nextBranch}\n`);
-    } else if (sanitized.startsWith("addspeakertag:")) {
-      let newTag = sanitized.substr(14);
-      toReturn.push(`\tADD SPKR: ${newTag}\n`);
-    } else if (sanitized.startsWith("addtargettag:")) {
-      let newTag = sanitized.substr(13);
-      toReturn.push(`\tADD TRGT: ${newTag}\n`);
-    } else if (sanitized.startsWith("removespeakertag:")) {
-      let newTag = sanitized.substr(17);
-      toReturn.push(`\tREM SPKR: ${newTag}\n`);
-    } else if (sanitized.startsWith("removetargettag:")) {
-      let newTag = sanitized.substr(16);
-      toReturn.push(`\tREM TRGT: ${newTag}\n`);
-    }
-  });
-  return toReturn;
-}
-
-//#endregion
-
 //#region Cell operations
 
 // Adds a cell to the header
 function insertHeaderCell(row, name) {
   let cell = document.createElement("th");
-  cell.setAttribute("style", "font-weight: bold;");
+  cell.setAttribute("style", "font-weight: bold; position: sticky;");
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   let headerCellWrapper = document.createElement("div");
   let headerCellLabel = document.createElement("div");
   headerCellLabel.innerHTML = name;
@@ -370,13 +127,49 @@ function insertHeaderCell(row, name) {
 // Inserts a special cell that contains the index of the current line
 function insertLineIdCell(row, lineIndex) {
   let cell = row.insertCell();
-  cell.setAttribute("style", "text-align: center");
   cell.innerHTML = lineIndex;
+}
+
+// Adds a special cell that performs actions
+function insertActionsCell(row, lineIndex) {
+  let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
+
+  let dupeDiv = document.createElement("button");
+  dupeDiv.setAttribute("class", "mdl-button mdl-js-button mdl-button--icon");
+  dupeDiv.innerHTML = iconDupeSvg;
+  dupeDiv.title = "Duplicate this row";
+  dupeDiv.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Dupe"));
+
+  let insertAboveDiv = document.createElement("button");
+  insertAboveDiv.setAttribute("class", "mdl-button mdl-js-button mdl-button--icon");
+  insertAboveDiv.innerHTML = iconAddRowBeforeSvg;
+  insertAboveDiv.title = "Add row above";
+  insertAboveDiv.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddAbove"));
+
+  let insertBelowDiv = document.createElement("button");
+  insertBelowDiv.setAttribute("class", "mdl-button mdl-js-button mdl-button--icon");
+  insertBelowDiv.innerHTML = iconAddRowAfterSvg;
+  insertBelowDiv.title = "Add row below";
+  insertBelowDiv.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddBelow"));
+
+  let removeDiv = document.createElement("button");
+  removeDiv.setAttribute("class", "mdl-button mdl-js-button mdl-button--icon");
+  removeDiv.innerHTML = iconRemoveRowSvg;
+  removeDiv.title = "Delete row";
+  removeDiv.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Del"));
+
+  cell.appendChild(insertAboveDiv);
+  cell.appendChild(dupeDiv);
+  cell.appendChild(document.createElement("br"));
+  cell.appendChild(insertBelowDiv);
+  cell.appendChild(removeDiv);
 }
 
 // Inserts a special cell that duplicates the current row when clicked
 function insertDuplicateCell(row, lineIndex) {
   let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   cell.innerHTML = iconDupeSvg;
   cell.title = "Duplicate this row";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Dupe"));
@@ -385,6 +178,7 @@ function insertDuplicateCell(row, lineIndex) {
 // Inserts a special cell that inserts a new row when clicked
 function insertAddAboveCell(row, lineIndex) {
   let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   cell.innerHTML = iconAddRowBeforeSvg;
   cell.title = "Add row above";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddAbove"));
@@ -393,6 +187,7 @@ function insertAddAboveCell(row, lineIndex) {
 // Inserts a special cell that inserts a new row when clicked
 function insertAddBelowCell(row, lineIndex) {
   let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   cell.innerHTML = iconAddRowAfterSvg;
   cell.title = "Add row below";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddBelow"));
@@ -401,6 +196,7 @@ function insertAddBelowCell(row, lineIndex) {
 // Inserts a special cell that removes the current row when clicked
 function insertRemoveCell(row, lineIndex) {
   let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   cell.innerHTML = iconRemoveRowSvg;
   cell.title = "Delete row";
   cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Del"));
@@ -431,6 +227,7 @@ function mutateTable(subchunkIndex, lineIndex, action) {
 // Inserts a checkbox cell
 function insertCheckboxCell(row, lineIndex, getFromJsonObjHelper, updateJsonObjHelper) {
   let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   const input = document.createElement("input");
   input.setAttribute("type", "checkbox");
   input.checked = getFromJsonObjHelper(subchunkIndex, lineIndex);
@@ -445,6 +242,7 @@ function insertCheckboxCell(row, lineIndex, getFromJsonObjHelper, updateJsonObjH
 // Inserts a special color selector cell
 function insertColorCell(row, lineIndex) {
   let cell = row.insertCell();
+  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   const input = document.createElement("input");
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"];
   input.setAttribute("type", "color");
@@ -471,6 +269,7 @@ function insertEditableCell(row, lineIndex, fieldName) {
   var spanResizer = document.createElement("span");
   var input = document.createElement("textarea");
   input.setAttribute("rows", 3);
+  input.setAttribute("placeholder", columnNames[fieldName]);
   var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
 
@@ -484,7 +283,7 @@ function insertEditableCell(row, lineIndex, fieldName) {
     case "Loc":
     case "Wgt":
     case "Cool":
-      input.style = "width:25px";
+      input.style = "width:35px";
       break;
     case "Txt":
     case "Cmt":
@@ -523,34 +322,18 @@ function insertHeader() {
     return;
   }
   columnList.forEach(e => {
-    if (columnVisibility[e]) {
-      insertHeaderCell(headerRow, columnNames[e]);
-    }
+    insertHeaderCell(headerRow, columnNames[e]);
+
   });
 }
 
 // Populates a row in the table
-function insertRow(table, lineIndex, useFilter = false) {
-  if (useFilter && !shouldDrawRow(lineIndex)) {
-    return;
-  }
+function insertRow(table, lineIndex) {
   let row = table.insertRow();
   columnList.forEach(e => {
-    if (!columnVisibility[e]) {
-      return;
-    }
     switch (e) {
-      case "Dupe":
-        insertDuplicateCell(row, lineIndex);
-        break;
-      case "AddAbove":
-        insertAddAboveCell(row, lineIndex);
-        break;
-      case "AddBelow":
-        insertAddBelowCell(row, lineIndex);
-        break;
-      case "Del":
-        insertRemoveCell(row, lineIndex);
+      case "Actions":
+        insertActionsCell(row, lineIndex);
         break;
       case "LineId":
         insertLineIdCell(row, lineIndex);
@@ -605,53 +388,16 @@ function renderSubchunkSelector() {
   selectorListener();
 }
 
-function renderColToggles() {
-  const colToggles = document.getElementById("column-toggles");
-  colToggles.innerHTML = "";
-  columnList.forEach(e => {
-    var visibilityName = "Visible" + e;
-    var cachedVisibility = localStorage.getItem(visibilityName);
-    if (cachedVisibility != undefined) {
-      columnVisibility[e] = cachedVisibility == "true";
-    } else {
-      columnVisibility[e] = true;
-    }
-
-    let name = columnNames[e];
-    if (name == undefined || name == "") {
-      return;
-    }
-    let spanWrapper = document.createElement("li");
-    spanWrapper.setAttribute("style", "display: inline;margin: 15px;padding: 5px;");
-    let toggle = document.createElement("input");
-    toggle.setAttribute("type", "checkbox");
-    toggle.setAttribute("id", e);
-    toggle.colName = e;
-    toggle.checked = columnVisibility[e];
-
-    toggle.addEventListener("click", () => {
-      console.log(`updating checkbox ${e} to ${toggle.checked}`)
-      columnVisibility[e] = toggle.checked;
-      localStorage.setItem("Visible" + e, toggle.checked);
-      renderTable();
-    });
-    let label = document.createElement("label");
-    label.setAttribute("for", e);
-    label.innerHTML = name;
-    spanWrapper.appendChild(toggle);
-    spanWrapper.appendChild(label);
-    colToggles.appendChild(spanWrapper);
-  });
-}
-
 // Populates the table with what is currently in the global jsonObj variable
-function renderTable(useFilter = false) {
+function renderTable() {
   const nameElement = document.getElementById("jsonName");
   nameElement.innerHTML = jsonObj.Name != undefined ? jsonObj.Name : "";
 
   const locElement = document.getElementById("locInfo");
   if (jsonObj.LocalizationDisabled) {
     locElement.innerHTML = "Localization DISABLED";
+  } else {
+    locElement.innerHTML = "";
   }
 
   const table = document.getElementById("datatablebody");
@@ -663,107 +409,9 @@ function renderTable(useFilter = false) {
   }
   var subchunk = jsonObj.SubChunks[subchunkIndex];
   for (var j = 0; j < subchunk.Lines.length; j++) {
-    insertRow(table, j, useFilter);
+    insertRow(table, j);
   }
 
-}
-
-//#endregion
-
-//#region Filters
-
-function populateFilter() {
-  let filterColumn = document.getElementById("filter-column");
-  let filterOperation = document.getElementById("filter-operation");
-  let filterTerms = document.getElementById("filter-terms");
-
-  filterColumn.innerHTML = "";
-  columnList.forEach(e => {
-    let text = columnNames[e];
-    if (text == undefined || text == "") {
-      return;
-    }
-    var option = document.createElement("option");
-    option.text = text;
-    option.setAttribute("value", e)
-    filterColumn.add(option);
-  });
-
-  if (localStorage.getItem("filterColumn") != undefined) {
-    filterColumn.value = localStorage.getItem("filterColumn");
-  } else {
-    filterColumn.selectedIndex = -1;
-  }
-
-  if (localStorage.getItem("filterOperation") != undefined) {
-    filterOperation.value = localStorage.getItem("filterOperation");
-  } else {
-    filterOperation.selectedIndex = -1;
-  }
-
-  if (localStorage.getItem("filterTerms") != undefined) {
-    filterTerms.value = localStorage.getItem("filterTerms");
-  } else {
-    filterTerms.value = "";
-  }
-}
-
-function filterListener() {
-  let filterColumn = document.getElementById("filter-column");
-  let filterOperation = document.getElementById("filter-operation");
-  let filterTerms = document.getElementById("filter-terms");
-
-  localStorage.setItem("filterColumn", filterColumn.value);
-  localStorage.setItem("filterOperation", filterOperation.value);
-  localStorage.setItem("filterTerms", filterTerms.value);
-
-  renderTable(true);
-}
-
-function filterClear() {
-  let filterColumn = document.getElementById("filter-column");
-  let filterOperation = document.getElementById("filter-operation");
-  let filterTerms = document.getElementById("filter-terms");
-
-  filterColumn.selectedIndex = -1;
-  filterOperation.selectedIndex = -1;
-  filterTerms.value = "";
-
-  filterListener();
-}
-
-function shouldDrawRow(lineIndex) {
-  let filterColumn = document.getElementById("filter-column").value;
-  let filterOperation = document.getElementById("filter-operation").value;
-  let filterTerms = document.getElementById("filter-terms").value.toLowerCase();
-
-  if (filterColumn == "" || filterOperation == "") {
-    return true;
-  }
-
-  let field = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][filterColumn];
-  if (field == undefined) {
-    return false;
-  }
-  field = field.toLowerCase();
-  switch (filterOperation) {
-    case "is":
-      if (csvColumns.includes(filterColumn)) {
-        return matchCsv(field, filterTerms);
-      }
-      return field.includes(filterTerms);
-    case "is-not":
-      if (csvColumns.includes(filterColumn)) {
-        return !matchCsv(field, filterTerms);
-      }
-      return !field.includes(filterTerms);
-    default:
-      return true;
-  }
-}
-
-function matchCsv(csvValue, term) {
-  return csvValue.split(',').map(e => e.trim()).includes(term);
 }
 
 //#endregion
@@ -773,16 +421,15 @@ function matchCsv(csvValue, term) {
 // Handles drag & drop events on the textarea
 function dropHandler(event) {
   event.preventDefault();
-  console.log(event);
   console.log("drag detected");
   if (event.dataTransfer.items) {
     // Access only the first item dropped
     if (event.dataTransfer.items[0].kind === 'file') {
       var file = event.dataTransfer.items[0].getAsFile();
-      console.log("Is a file");
-      console.log(file.name);
+      console.log(`Getting contents of file ${file.name}`);
       file.text().then(text => {
         document.getElementById("textarea").value = text;
+        document.getElementById("textareawrapper").classList.add("is-dirty");
         textareaListener();
         renderSubchunkSelector();
       });
@@ -814,11 +461,10 @@ function clearAll() {
   console.log("clearing");
   localStorage.clear();
   document.getElementById("textarea").value = "";
+  document.getElementById("textareawrapper").classList.remove("is-dirty");
   getJsonObjFromTextarea()
   renderSubchunkSelector();
   renderTable();
-  renderColToggles();
-  populateFilter();
 }
 
 // Listener updating the current global subchunk index and cached subchunk index every time the selector is updated

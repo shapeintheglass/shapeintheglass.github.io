@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" class="mdl-js">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dialogue Visualizer</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.brown-orange.min.css" />
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  <script src="parser.js"></script>
+</head>
+
+<body>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <header class="mdl-layout__header">
+      <!-- Top row, always visible -->
+      <div class="mdl-layout__header-row">
+        <!-- Title -->
+        <span class="mdl-layout-title">Dialogue Visualizer</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+        <a href="#scroll-tab-1" class="mdl-layout__tab is-active">Data</a>
+        <a href="#scroll-tab-2" class="mdl-layout__tab">Analytics</a>
+      </div>
+    </header>
+    <main>
+      <section class="mdl-layout__tab-panel is-active" id="scroll-tab-1">
+        <div class="page-content">
+          <h3>
+            JSON
+          </h3>
+          <p>Copy/paste dialog file contents or drag & drop json file (only works with json files in
+            TagDatabases\Dialogue):
+          </p>
+          <label>
+            <div class="mdl-textfield mdl-js-textfield">
+              <textarea class="mdl-textfield__input" type="text" onchange="textareaListener()"
+                ondrop="dropHandler(event)" rows="8" cols="100" id="textarea"></textarea>
+            </div>
+          </label>
+
+          <p>After making changes, click "Export Changes" to update the textbox with the updated json.</p>
+          <p>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+              title="Update textbox with changes from table" onClick="populateTextArea()">
+              <span>Export Changes</span>
+            </button>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+              title="Clear local storage" onClick="clearAll()">
+              <span>Clear</span>
+            </button>
+          </p>
+          <h3>Filters</h3>
+          <span id="filter-container">
+            <select id="filter-column"></select>
+            <select id="filter-operation">
+              <option value="is">contains</option>
+              <option value="is-not">does not contain</option>
+            </select>
+            <input id="filter-terms"></input>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+              onclick="filterListener()">Apply</button>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+              onclick="filterClear()">Clear</button>
+          </span>
+
+          <hr class="solid">
+
+          <h3>
+            Column Visibility Toggles
+          </h3>
+          <p>Toggle which columns are visible.</p>
+          <div>
+            <ul id="column-toggles" style="list-style-type: none;"></ul>
+          </div>
+
+          <hr class="solid">
+
+          <h3>
+            Data
+          </h3>
+
+          <p>Select subchunk to edit here.</p>
+          <div>
+            <select id="subchunkSelector" onchange="selectorListener()"></select>
+          </div>
+
+          <h4 id="jsonName"></h4>
+          <p id="locInfo"></p>
+          <div>
+            <div>
+              <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
+                <thead>
+                  <tr id="headerrow">
+                  </tr>
+                </thead>
+                <tbody id="datatablebody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="mdl-layout__tab-panel is-active" id="scroll-tab-2">
+        <div class="page-content">
+          <h3>Analytics and Testing</h3>
+          <div>Subchunks: <span id="analytics-num-subchunks" style="font-weight: bold"></span>
+            | Lines: <span id="analytics-num-lines" style="font-weight: bold"></span>
+            | Tags: <span id="analytics-num-tags" style="font-weight: bold"></span>
+            | Events: <span id="analytics-num-events" style="font-weight: bold"></span></div>
+
+          <table style="width: 10%; border: 1px solid; border-style: groove;">
+            <tr>
+              <td style="vertical-align: top; ">
+                <div>
+                  <p>Events:</p>
+                  <select id="analytics-all-events" onchange="onAnalyticsEventUpdated()"></select>
+                </div>
+
+                <div>
+                  <p>Tags related to selected event:</p>
+                  <div style="overflow: scroll-auto; max-height:300px; width:300px; overflow-x: hidden;">
+                    <ul id="analytics-all-tags"></ul>
+                  </div>
+                </div>
+
+                <div>
+                  <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                    onclick="onFireEvent()">Test Fire Event</button>
+                </div>
+              </td>
+              <td style="width:10%">
+                <div class="mdl-textfield mdl-js-textfield">
+                  <textarea readonly class="mdl-textfield__input" type="text" id="test-output" rows="20"
+                    cols="60"></textarea>
+                </div>
+                <div id="convo-options"></div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+<html>

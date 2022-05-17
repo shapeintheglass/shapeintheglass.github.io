@@ -7,6 +7,14 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.brown-orange.min.css" />
   <script src="parser.js"></script>
+  <style>
+    .mdl-textfield__input {
+      color: black;
+      font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+      font-size: 14px;
+      resize: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -20,8 +28,7 @@
           <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%;"
             id="textareawrapper">
             <textarea class="mdl-textfield__input" type="text" onchange="textareaListener()" ondrop="dropHandler(event)"
-              rows="8" cols="100" id="textarea"
-              style="font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;"></textarea>
+              rows="8" cols="100" id="textarea"></textarea>
             <label class="mdl-textfield__label" for="textarea">Paste JSON here or drag & drop file from
               Nova\TagDatabases\Dialogue</label>
           </div>
@@ -47,8 +54,7 @@
         </div>
 
         <div class="mdl-card__supporting-text">
-          <select id="subchunkSelector" onchange="selectorListener()"></select>
-
+          Subchunk: <select id="subchunkSelector" onchange="selectorListener()"></select>
           <div style="overflow-x:scroll">
             <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
               <thead>

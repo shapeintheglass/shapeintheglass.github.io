@@ -265,12 +265,20 @@ function insertColorCell(row, lineIndex) {
 // Inserts an editable cell
 function insertEditableCell(row, lineIndex, fieldName) {
   let cell = row.insertCell();
-  var labelWrapper = document.createElement("label");
-  var spanResizer = document.createElement("span");
-  var input = document.createElement("textarea");
+  let formWrapper = document.createElement("form");
+  formWrapper.setAttribute("class", "#");
+  let divWrapper = document.createElement("div");
+  divWrapper.setAttribute("class", "mdl-textfield mdl-js-textfield");
+  let input = document.createElement("textarea");
+  input.setAttribute("class", "mdl-textfield__input");
+  input.setAttribute("type", "text");
   input.setAttribute("rows", 3);
-  input.setAttribute("placeholder", columnNames[fieldName]);
-  var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
+  let id = `${subchunkIndex}-${lineIndex}-${fieldName}`;
+  input.setAttribute("id", id)
+  input.setAttribute("placeholder", fieldName);
+
+
+  let value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
 
   switch (fieldName) {
@@ -305,9 +313,8 @@ function insertEditableCell(row, lineIndex, fieldName) {
       jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName] = newValue;
     }
   });
-  spanResizer.appendChild(input);
-  labelWrapper.appendChild(spanResizer);
-  cell.appendChild(labelWrapper);
+  formWrapper.appendChild(input);
+  cell.appendChild(formWrapper);
 }
 
 //#endregion

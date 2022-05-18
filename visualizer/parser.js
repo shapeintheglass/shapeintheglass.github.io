@@ -433,6 +433,7 @@ function analytics() {
   topicAnalyticsTable = {};
 
   if (jsonObj.SubChunks == undefined) {
+    updateAnalyticsTables();
     return;
   }
   let numSubChunks = jsonObj.SubChunks.length;
@@ -457,22 +458,24 @@ function analytics() {
       let tokens = eventName.split(":");
       let shortEventName = tokens[0].toLowerCase(); // Topic name
       let eventSubTag = tokens.length > 0 ? tokens[1] : ""; // Sequence index, if any
-      eventsInSubchunkSet.add(shortEventName);
+      let longEventName = combineEventAndSubchunkName(shortEventName, subchunkName);
+      eventsInSubchunkSet.add(longEventName);
 
-      if (subchunkAnalyticsTable[subchunkName][shortEventName] == undefined) {
-        subchunkAnalyticsTable[subchunkName][shortEventName] = {};
-        subchunkAnalyticsTable[subchunkName][shortEventName]["numLines"] = 0;
+      if (subchunkAnalyticsTable[subchunkName][longEventName] == undefined) {
+        subchunkAnalyticsTable[subchunkName][longEventName] = {};
+        subchunkAnalyticsTable[subchunkName][longEventName]["numLines"] = 0;
       }
 
-      if (subchunkAnalyticsTable[subchunkName][shortEventName][eventSubTag] == undefined) {
-        subchunkAnalyticsTable[subchunkName][shortEventName][eventSubTag] = new Array();
+      if (subchunkAnalyticsTable[subchunkName][longEventName][eventSubTag] == undefined) {
+        subchunkAnalyticsTable[subchunkName][longEventName][eventSubTag] = new Array();
       }
 
-      subchunkAnalyticsTable[subchunkName][shortEventName][eventSubTag].push(line);
-      subchunkAnalyticsTable[subchunkName][shortEventName]["numLines"]++;
+      subchunkAnalyticsTable[subchunkName][longEventName][eventSubTag].push(line);
+      subchunkAnalyticsTable[subchunkName][longEventName]["numLines"]++;
 
-      allEventsSet.add(shortEventName);
-      eventToSubchunkMap[shortEventName] = subchunkName;
+
+      allEventsSet.add(longEventName);
+      eventToSubchunkMap[longEventName] = subchunkName;
 
       // Get all tags invoked in the speaker/target columns
       let spkrTags = getTagsFromCsv(line['Spkr']);
@@ -489,7 +492,7 @@ function analytics() {
         subchunkToTagsMap[subchunkName].add(sanitized);
       });
 
-      subchunkAnalyticsTable[subchunkName][shortEventName]["numTags"] = tags.size;
+      subchunkAnalyticsTable[subchunkName][longEventName]["numTags"] = tags.size;
     });
     subchunkAnalyticsTable[subchunkName].numTopics = eventsInSubchunkSet.size;
     subchunkAnalyticsTable[subchunkName].numLines = linesInSubchunk;
@@ -503,9 +506,13 @@ function analytics() {
   sortedEvents = new Array();
 
   sortedEvents = Array.from(allEventsSet);
-  arrCaseInsensitiveSort(sortedEvents);
+  //arrCaseInsensitiveSort(sortedEvents);
 
   updateAnalyticsTables();
+}
+
+function combineEventAndSubchunkName(event, subchunk) {
+  return `${subchunk} - ${event}`;
 }
 
 function updateAnalyticsTables() {
@@ -514,6 +521,9 @@ function updateAnalyticsTables() {
   subchunkTable.innerHTML = "";
   topicTable.innerHTML = "";
 
+  if (jsonObj.SubChunks == undefined) {
+    return;
+  }
   for (let i = 0; i < jsonObj.SubChunks.length; i++) {
     let subchunk = jsonObj.SubChunks[i];
     let row = document.createElement("tr");
@@ -545,15 +555,12 @@ function updateAnalyticsTables() {
     let indexCell = document.createElement("td");
     let topicNameCell = document.createElement("td");
     topicNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
-    let subchunkNameCell = document.createElement("td");
-    subchunkNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
     let numSeqCell = document.createElement("td");
     let numLinesCell = document.createElement("td");
     let numTagsCell = document.createElement("td");
 
     indexCell.innerHTML = i;
     topicNameCell.innerHTML = event;
-    subchunkNameCell.innerHTML = subchunk;
     // Subtract two keys because we store the number of lines and number of tags as keys
     numSeqCell.innerHTML = Object.keys(subchunkAnalyticsTable[subchunk][event]).length - 2;
     numLinesCell.innerHTML = subchunkAnalyticsTable[subchunk][event].numLines;
@@ -561,7 +568,6 @@ function updateAnalyticsTables() {
 
     row.appendChild(indexCell);
     row.appendChild(topicNameCell);
-    row.appendChild(subchunkNameCell);
     row.appendChild(numSeqCell);
     row.appendChild(numLinesCell);
     row.appendChild(numTagsCell);
@@ -681,6 +687,7 @@ function clearAll() {
   getJsonObjFromTextarea()
   renderSubchunkSelector();
   renderTable();
+  analytics();
 }
 
 // Listener updating the current global subchunk index and cached subchunk index every time the selector is updated

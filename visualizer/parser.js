@@ -1,9 +1,33 @@
 'use strict';
 
-var jsonObj;
-var subchunkIndex;
 const defaultFilename = "text.json";
+
+// Main container for all content in the imported file
+var jsonObj;
+
+// Current selected index of the subchunk to edit
+var subchunkIndex;
+
+// Filename to use when exporting
 var filename = defaultFilename;
+
+// Map of event to the subchunk it belongs to
+var eventToSubchunkMap = {};
+
+// Map of subchunk name to the tags it contains
+var subchunkToTagsMap = {};
+
+// Map of event to the lines (object) it contains
+var eventToLinesMap = {};
+
+// Map of subchunk to stats
+var subchunkAnalyticsTable = {};
+
+// Map of topics to stats
+var topicAnalyticsTable = {};
+
+// Sorted list of events in current file
+var sortedEvents;
 
 // Column order
 const columnList = ["Actions", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
@@ -39,30 +63,60 @@ const columnNames = {
 
 const csvColumns = ["Spkr", "Trgt", "Dscr"];
 
+function setActiveTab(tabId) {
+  localStorage.setItem("activeTab", tabId);
+}
+
 // Restores cached state on load
 window.onload = function () {
-  var cached = localStorage.getItem("jsonObj");
+  let activeTab = localStorage.getItem("activeTab");
+  let activePanel = "";
+  switch (activeTab) {
+    case "tab-import":
+      activePanel = "import-panel";
+      break;
+    case "tab-analytics":
+      activePanel = "analytics-panel";
+      break;
+    case "tab-viz":
+      activePanel = "viz-panel";
+      break;
+  }
+  document.getElementById("tab-import").classList.remove("is-active");
+  document.getElementById("import-panel").classList.remove("is-active");
+  document.getElementById(activeTab).classList.add("is-active");
+  document.getElementById(activePanel).classList.add("is-active");
+
+  let cached = localStorage.getItem("jsonObj");
   if (cached != null) {
     document.getElementById("textarea").value = cached;
   }
-  var cachedSubchunkIndex = localStorage.getItem("subchunkIndex");
+  let cachedSubchunkIndex = localStorage.getItem("subchunkIndex");
   if (cachedSubchunkIndex != null) {
     subchunkIndex = cachedSubchunkIndex;
   }
+  filename = localStorage.getItem("filename");
+  document.getElementById("title-filename").innerHTML = `: ${filename}`;
   renderSubchunkSelector();
 }
 
 document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === 's') {
     console.log("save keypress detected");
+    snackbar("Updated JSON text");
+    e.preventDefault();
+    populateTextArea();
+  }
+
+  if (e.ctrlKey && e.key === 'e') {
+    snackbar("Exporting to file");
     e.preventDefault();
     let textToSet = populateTextArea();
-
-    var file = new Blob([textToSet], { type: "text" });
+    let file = new Blob([textToSet], { type: "text" });
     if (window.navigator.msSaveOrOpenBlob) // IE10+
       window.navigator.msSaveOrOpenBlob(file, filename);
     else { // Others
-      var a = document.createElement("a"),
+      let a = document.createElement("a"),
         url = URL.createObjectURL(file);
       a.href = url;
       a.download = filename;
@@ -78,12 +132,13 @@ document.addEventListener('keydown', e => {
 
 // Loads JSON from the textarea and parses it into an object
 function getJsonObjFromTextarea() {
-  var jsonInput = document.getElementById("textarea").value;
+  let jsonInput = document.getElementById("textarea").value;
   jsonObj = {};
   try {
     jsonObj = JSON.parse(jsonInput);
   } catch (e) {
     jsonObj = {};
+    analytics();
     return;
   }
 
@@ -91,6 +146,9 @@ function getJsonObjFromTextarea() {
     // Reset the current subchunk index
     subchunkIndex = 0;
   }
+
+  // Run analytics
+  analytics();
 }
 
 function getTagsFromCsv(csvStr, preserveOperator = false) {
@@ -184,42 +242,6 @@ function insertActionsCell(row, lineIndex) {
   cell.appendChild(removeDiv);
 }
 
-// Inserts a special cell that duplicates the current row when clicked
-function insertDuplicateCell(row, lineIndex) {
-  let cell = row.insertCell();
-  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
-  cell.innerHTML = iconDupeSvg;
-  cell.title = "Duplicate this row";
-  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Dupe"));
-}
-
-// Inserts a special cell that inserts a new row when clicked
-function insertAddAboveCell(row, lineIndex) {
-  let cell = row.insertCell();
-  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
-  cell.innerHTML = iconAddRowBeforeSvg;
-  cell.title = "Add row above";
-  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddAbove"));
-}
-
-// Inserts a special cell that inserts a new row when clicked
-function insertAddBelowCell(row, lineIndex) {
-  let cell = row.insertCell();
-  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
-  cell.innerHTML = iconAddRowAfterSvg;
-  cell.title = "Add row below";
-  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "AddBelow"));
-}
-
-// Inserts a special cell that removes the current row when clicked
-function insertRemoveCell(row, lineIndex) {
-  let cell = row.insertCell();
-  cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
-  cell.innerHTML = iconRemoveRowSvg;
-  cell.title = "Delete row";
-  cell.addEventListener('click', () => mutateTable(subchunkIndex, lineIndex, "Del"));
-}
-
 // Performs the given action on the underlying json and redraws the data table
 function mutateTable(subchunkIndex, lineIndex, action) {
   console.log(`Mutating w/ action ${action} on ${subchunkIndex}, ${lineIndex}`);
@@ -234,8 +256,8 @@ function mutateTable(subchunkIndex, lineIndex, action) {
       jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 1);
       break;
     case "Dupe":
-      var currLine = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex];
-      var dupeLine = JSON.parse(JSON.stringify(currLine));
+      let currLine = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex];
+      let dupeLine = JSON.parse(JSON.stringify(currLine));
       jsonObj.SubChunks[subchunkIndex].Lines.splice(lineIndex, 0, dupeLine);
       break;
   }
@@ -262,7 +284,7 @@ function insertColorCell(row, lineIndex) {
   let cell = row.insertCell();
   cell.setAttribute("class", "mdl-data-table__cell--non-numeric");
   const input = document.createElement("input");
-  var value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"];
+  let value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"];
   input.setAttribute("type", "color");
   input.value = value;
   input.addEventListener('change', input => {
@@ -274,7 +296,6 @@ function insertColorCell(row, lineIndex) {
       console.log(`updating color of subchunk ${subchunkIndex} line ${lineIndex} to ${value}`);
       jsonObj.SubChunks[subchunkIndex].Lines[lineIndex]["Clr"] = value;
     }
-
     renderTable();
   });
   cell.appendChild(input);
@@ -294,8 +315,6 @@ function insertEditableCell(row, lineIndex, fieldName) {
   let id = `${subchunkIndex}-${lineIndex}-${fieldName}`;
   input.setAttribute("id", id)
   input.setAttribute("placeholder", fieldName);
-
-
   let value = jsonObj.SubChunks[subchunkIndex].Lines[lineIndex][fieldName];
   input.value = value == undefined ? "" : value;
 
@@ -335,13 +354,13 @@ function insertEditableCell(row, lineIndex, fieldName) {
   cell.appendChild(formWrapper);
 }
 
-//#endregion
+//#endregion Cell operations
 
 //#region Row operations
 
 // Adds the table header
 function insertHeader() {
-  var headerRow = document.getElementById("headerrow");
+  let headerRow = document.getElementById("headerrow");
   headerRow.innerHTML = "";
   if (jsonObj.SubChunks == undefined || jsonObj.SubChunks.length == 0) {
     return;
@@ -385,7 +404,164 @@ function insertRow(table, lineIndex) {
   });
 }
 
-//#endregion
+//#endregion Row operations
+
+//#region analytics
+
+function getEventIdInSubchunk(eventStr, subchunkName) {
+  return "(" + subchunkName + ") " + getEventName(eventStr);
+}
+
+function analytics() {
+  let analyticsSubchunk = document.getElementById("analytics-num-subchunks");
+  let analyticsLine = document.getElementById("analytics-num-lines");
+  let analyticsTags = document.getElementById("analytics-num-tags");
+  let analyticsEvents = document.getElementById("analytics-num-events");
+
+  analyticsSubchunk.innerHTML = "";
+  analyticsLine.innerHTML = "";
+  analyticsTags.innerHTML = "";
+  analyticsEvents.innerHTML = "";
+
+  eventToSubchunkMap = {};
+  subchunkToTagsMap = {};
+  eventToLinesMap = {};
+
+  subchunkAnalyticsTable = {};
+  topicAnalyticsTable = {};
+
+  if (jsonObj.SubChunks == undefined) {
+    return;
+  }
+  let numSubChunks = jsonObj.SubChunks.length;
+
+  let numLines = 0;
+  let tags = new Set();
+  let allEventsSet = new Set();
+
+  // Populate cached analytics
+  jsonObj.SubChunks.forEach(subchunk => {
+    numLines += subchunk.Lines.length;
+    let subchunkName = subchunk.Name;
+    subchunkToTagsMap[subchunkName] = new Set();
+    subchunkAnalyticsTable[subchunkName] = {};
+    let eventsInSubchunkSet = new Set();
+    let linesInSubchunk = 0;
+    subchunk.Lines.forEach(line => {
+      linesInSubchunk++;
+      let eventName = line['Evt'];
+
+      // Split out event index and add to event lines map
+      let tokens = eventName.split(":");
+      let shortEventName = tokens[0].toLowerCase(); // Topic name
+      let eventSubTag = tokens.length > 0 ? tokens[1] : ""; // Sequence index, if any
+      eventsInSubchunkSet.add(shortEventName);
+
+      if (subchunkAnalyticsTable[subchunkName][shortEventName] == undefined) {
+        subchunkAnalyticsTable[subchunkName][shortEventName] = {};
+        subchunkAnalyticsTable[subchunkName][shortEventName]["numLines"] = 0;
+      }
+
+      if (subchunkAnalyticsTable[subchunkName][shortEventName][eventSubTag] == undefined) {
+        subchunkAnalyticsTable[subchunkName][shortEventName][eventSubTag] = new Array();
+      }
+
+      subchunkAnalyticsTable[subchunkName][shortEventName][eventSubTag].push(line);
+      subchunkAnalyticsTable[subchunkName][shortEventName]["numLines"]++;
+
+      allEventsSet.add(shortEventName);
+      eventToSubchunkMap[shortEventName] = subchunkName;
+
+      // Get all tags invoked in the speaker/target columns
+      let spkrTags = getTagsFromCsv(line['Spkr']);
+      let trgtTags = getTagsFromCsv(line['Trgt']);
+
+      spkrTags.forEach(tag => {
+        let sanitized = tag.toLowerCase();
+        tags.add(sanitized);
+        subchunkToTagsMap[subchunkName].add(sanitized);
+      });
+      trgtTags.forEach(tag => {
+        let sanitized = tag.toLowerCase();
+        tags.add(sanitized)
+        subchunkToTagsMap[subchunkName].add(sanitized);
+      });
+
+      subchunkAnalyticsTable[subchunkName][shortEventName]["numTags"] = tags.size;
+    });
+    subchunkAnalyticsTable[subchunkName].numTopics = eventsInSubchunkSet.size;
+    subchunkAnalyticsTable[subchunkName].numLines = linesInSubchunk;
+  });
+
+  analyticsSubchunk.innerHTML = numSubChunks;
+  analyticsLine.innerHTML = numLines;
+  analyticsTags.innerHTML = tags.size;
+  analyticsEvents.innerHTML = allEventsSet.size;
+  sortedEvents = Array.from(allEventsSet);
+  arrCaseInsensitiveSort(sortedEvents);
+
+  updateAnalyticsTables();
+}
+
+function updateAnalyticsTables() {
+  let subchunkTable = document.getElementById("analytics-subchunk-body");
+  let topicTable = document.getElementById("analytics-topic-body");
+  subchunkTable.innerHTML = "";
+  topicTable.innerHTML = "";
+
+  for (let i = 0; i < jsonObj.SubChunks.length; i++) {
+    let subchunk = jsonObj.SubChunks[i];
+    let row = document.createElement("tr");
+
+    let indexCell = document.createElement("td");
+    let subchunkNameCell = document.createElement("td");
+    subchunkNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
+    let numTopicsCell = document.createElement("td");
+    let numLinesCell = document.createElement("td");
+
+    indexCell.innerHTML = i;
+    subchunkNameCell.innerHTML = subchunk.Name;
+    numTopicsCell.innerHTML = subchunkAnalyticsTable[subchunk.Name].numTopics;
+    numLinesCell.innerHTML = subchunkAnalyticsTable[subchunk.Name].numLines;
+
+    row.appendChild(indexCell);
+    row.appendChild(subchunkNameCell);
+    row.appendChild(numTopicsCell);
+    row.appendChild(numLinesCell);
+
+    subchunkTable.appendChild(row);
+  };
+
+  for (let i = 0; i < sortedEvents.length; i++) {
+    let event = sortedEvents[i];
+    let subchunk = eventToSubchunkMap[event];
+    let row = document.createElement("tr");
+
+    let indexCell = document.createElement("td");
+    let topicNameCell = document.createElement("td");
+    topicNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
+    let numSeqCell = document.createElement("td");
+    let numLinesCell = document.createElement("td");
+    let numTagsCell = document.createElement("td");
+
+    indexCell.innerHTML = i;
+    topicNameCell.innerHTML = event;
+    // Subtract two keys because we store the number of lines and number of tags as keys
+    numSeqCell.innerHTML = Object.keys(subchunkAnalyticsTable[subchunk][event]).length - 2;
+    numLinesCell.innerHTML = subchunkAnalyticsTable[subchunk][event].numLines;
+    numTagsCell.innerHTML = subchunkAnalyticsTable[subchunk][event].numTags;
+
+    row.appendChild(indexCell);
+    row.appendChild(topicNameCell);
+    row.appendChild(numSeqCell);
+    row.appendChild(numLinesCell);
+    row.appendChild(numTagsCell);
+    topicTable.appendChild(row);
+  }
+}
+
+//#endregion Analytics
+
 
 //#region Renderers
 
@@ -393,16 +569,16 @@ function insertRow(table, lineIndex) {
 function renderSubchunkSelector() {
   getJsonObjFromTextarea();
 
-  var selector = document.getElementById("subchunkSelector");
+  let selector = document.getElementById("subchunkSelector");
   selector.innerHTML = "";
 
   if (jsonObj.SubChunks == undefined) {
     return;
   }
 
-  for (var i = 0; i < jsonObj.SubChunks.length; i++) {
-    var subchunk = jsonObj.SubChunks[i];
-    var option = document.createElement("option");
+  for (let i = 0; i < jsonObj.SubChunks.length; i++) {
+    let subchunk = jsonObj.SubChunks[i];
+    let option = document.createElement("option");
     option.subchunkIndex = i;
     option.text = subchunk.Name;
     selector.add(option);
@@ -432,14 +608,14 @@ function renderTable() {
   if (jsonObj.SubChunks == undefined || jsonObj.SubChunks.length == 0) {
     return;
   }
-  var subchunk = jsonObj.SubChunks[subchunkIndex];
-  for (var j = 0; j < subchunk.Lines.length; j++) {
+  let subchunk = jsonObj.SubChunks[subchunkIndex];
+  for (let j = 0; j < subchunk.Lines.length; j++) {
     insertRow(table, j);
   }
 
 }
 
-//#endregion
+//#endregion Renderers
 
 //#region Handlers/Listeners 
 
@@ -450,9 +626,11 @@ function dropHandler(event) {
   if (event.dataTransfer.items) {
     // Access only the first item dropped
     if (event.dataTransfer.items[0].kind === 'file') {
-      var file = event.dataTransfer.items[0].getAsFile();
+      let file = event.dataTransfer.items[0].getAsFile();
       console.log(`Getting contents of file ${file.name}`);
       filename = file.name;
+      document.getElementById("title-filename").innerHTML = `: ${filename}`;
+      localStorage.setItem("filename", filename);
       file.text().then(text => {
         document.getElementById("textarea").value = text;
         document.getElementById("textareawrapper").classList.add("is-dirty");
@@ -469,7 +647,7 @@ function dropHandler(event) {
 // Listener for updating the cache every time the textarea is changed
 function textareaListener() {
   console.log("updating cache")
-  var jsonInput = document.getElementById("textarea").value;
+  let jsonInput = document.getElementById("textarea").value;
   localStorage.setItem("jsonObj", jsonInput);
   subchunkIndex = 0;
   renderSubchunkSelector();
@@ -477,8 +655,8 @@ function textareaListener() {
 
 // Populates the text area with what is currenly in the global jsonObj variable
 function populateTextArea() {
-  var textbox = document.getElementById("textarea");
-  var textToSet = JSON.stringify(jsonObj, null, 2);
+  let textbox = document.getElementById("textarea");
+  let textToSet = JSON.stringify(jsonObj, null, 2);
   textbox.value = textToSet;
   localStorage.setItem("jsonObj", textToSet);
   return textToSet;
@@ -487,7 +665,8 @@ function populateTextArea() {
 function clearAll() {
   console.log("clearing");
   localStorage.clear();
-  filename = defaultFilename
+  filename = defaultFilename;
+  document.getElementById("title-filename").innerHTML = "";
   document.getElementById("textarea").value = "";
   document.getElementById("textareawrapper").classList.remove("is-dirty");
   getJsonObjFromTextarea()
@@ -497,10 +676,23 @@ function clearAll() {
 
 // Listener updating the current global subchunk index and cached subchunk index every time the selector is updated
 function selectorListener() {
-  var selector = document.getElementById("subchunkSelector");
+  let selector = document.getElementById("subchunkSelector");
   subchunkIndex = selector.selectedIndex;
   localStorage.setItem("subchunkIndex", subchunkIndex);
   renderTable();
 }
 
-//#endregion
+//#endregion Handlers/listeners
+
+//#region Snackbar
+
+function snackbar(msg) {
+  let notification = document.querySelector('.mdl-js-snackbar');
+  let data = {
+    message: msg,
+    timeout: 1000
+  };
+  notification.MaterialSnackbar.showSnackbar(data);
+}
+
+//#endregion Snackbar

@@ -21,58 +21,153 @@
   <div class="mdl-layout mdl-js-layout" ondrop="dropHandler(event)" ondragover="event.preventDefault()">
     <header class="mdl-layout__header">
       <div class="mdl-layout__header-row">
-        <span class="mdl-layout-title">Dialogue Editor</span>
+        <span class="mdl-layout-title">Dialogue Editor<span id="title-filename"></span></span>
       </div>
     </header>
-
     <main class="mdl-layout__content">
-      <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
-        <div class="mdl-card__title">
-          <h2 class="mdl-card__title-text">JSON Input/Output</h2>
+      <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+        <div class="mdl-tabs__tab-bar">
+          <a href="#import-panel" class="mdl-tabs__tab is-active" id="tab-import"
+            onclick="setActiveTab('tab-import')">Import / Edit</a>
+          <a href="#analytics-panel" class="mdl-tabs__tab" id="tab-analytics"
+            onclick="setActiveTab('tab-analytics')">Analytics</a>
+          <a href="#viz-panel" class="mdl-tabs__tab" id="tab-viz" onclick="setActiveTab('tab-viz')">Visualization</a>
         </div>
-        <div class="mdl-card__supporting-text">
-          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%;"
-            id="textareawrapper">
-            <textarea class="mdl-textfield__input" type="text" onchange="textareaListener()" rows="8" cols="100"
-              id="textarea"></textarea>
-            <label class="mdl-textfield__label" for="textarea">Paste JSON here or drag & drop file from
-              Nova\TagDatabases\Dialogue</label>
+        <div class="mdl-tabs__panel is-active" id="import-panel">
+          <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">JSON Input/Output</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%;"
+                id="textareawrapper">
+                <textarea class="mdl-textfield__input" type="text" onchange="textareaListener()" rows="8" cols="100"
+                  id="textarea"></textarea>
+                <label class="mdl-textfield__label" for="textarea">Paste JSON here or drag & drop file from
+                  Nova\TagDatabases\Dialogue</label>
+              </div>
+            </div>
+            <div class="mdl-card__actions">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                title="Update textbox with changes from table" onClick="populateTextArea()">
+                <span>Write Changes</span>
+              </button>
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                title="Clear local storage" onClick="clearAll()">
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+          <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+            <div class="mdl-card__title">
+              <h2>
+                <div class="mdl-card__title-text" id="jsonName"></div>
+                <div class="mdl-card__subtitle-text" id="locInfo"></div>
+              </h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <div><span>Subchunk:</span> <select id="subchunkSelector" onchange="selectorListener()"></select></div>
+              <div style="overflow-x:scroll">
+                <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
+                  <thead>
+                    <tr id="headerrow">
+                    </tr>
+                  </thead>
+                  <tbody id="datatablebody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="mdl-card__actions">
-          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-            title="Update textbox with changes from table" onClick="populateTextArea()">
-            <span>Write Changes</span>
-          </button>
-          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-            title="Clear local storage" onClick="clearAll()">
-            <span>Clear</span>
-          </button>
+        <div class="mdl-tabs__panel" id="analytics-panel">
+          <div
+            class="demo-options mdl-card mdl-shadow--2dp mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
+            <div class="mdl-card__title">
+              <h2>
+                <div class="mdl-card__title-text">Subchunks: <span id="analytics-num-subchunks"
+                    style="font-weight: bold"></span>&nbsp| Topics: <span id="analytics-num-events"
+                    style="font-weight: bold"></span>&nbsp| Lines: <span id="analytics-num-lines"
+                    style="font-weight: bold"></span>&nbsp| Tags: <span id="analytics-num-tags"
+                    style="font-weight: bold"></span></div>
+              </h2>
+            </div>
+          </div>
+          <div class="mdl-grid">
+            <div
+              class="demo-options mdl-card mdl-shadow--2dp mdl-cell mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--5-col-desktop">
+              <div class="mdl-card__title">
+                <h2>
+                  <div class="mdl-card__title-text">Subchunks</div>
+                </h2>
+              </div>
+              <div class="mdl-card__supporting-text">
+                <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
+                  <thead>
+                    <tr>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Index
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Subchunk
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Num topics
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Num lines
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-subchunk-body">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div
+              class="demo-options mdl-card mdl-shadow--2dp mdl-cell mdl-cell--2-col mdl-cell--3-col-tablet mdl-cell--7-col-desktop">
+              <div class="mdl-card__title">
+                <h2>
+                  <div class="mdl-card__title-text">Topics</div>
+                </h2>
+              </div>
+              <div class="mdl-card__supporting-text">
+                <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
+                  <thead>
+                    <tr>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Index
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Topic
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Sequence length
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Num lines
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Num tags
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-topic-body">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="mdl-tabs__panel" id="viz-panel">
+          Placeholder
         </div>
       </div>
 
-      <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
-        <div class="mdl-card__title">
-          <h2>
-            <div class="mdl-card__title-text" id="jsonName"></div>
-            <div class="mdl-card__subtitle-text" id="locInfo"></div>
-          </h2>
-        </div>
-
-        <div class="mdl-card__supporting-text">
-          <div><span>Subchunk:</span> <select id="subchunkSelector" onchange="selectorListener()"></select></div>
-
-          <div style="overflow-x:scroll">
-            <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
-              <thead>
-                <tr id="headerrow">
-                </tr>
-              </thead>
-              <tbody id="datatablebody">
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div aria-live="assertive" aria-atomic="true" aria-relevant="text" class="mdl-snackbar mdl-js-snackbar">
+        <div class="mdl-snackbar__text"></div>
+        <button type="button" class="mdl-snackbar__action"></button>
       </div>
     </main>
   </div>

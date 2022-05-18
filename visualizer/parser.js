@@ -2,6 +2,8 @@
 
 var jsonObj;
 var subchunkIndex;
+const defaultFilename = "text.json";
+var filename = defaultFilename;
 
 // Column order
 const columnList = ["Actions", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
@@ -54,7 +56,23 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === 's') {
     console.log("save keypress detected");
     e.preventDefault();
-    populateTextArea();
+    let textToSet = populateTextArea();
+
+    var file = new Blob([textToSet], { type: "text" });
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+      var a = document.createElement("a"),
+        url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    }
   }
 });
 
@@ -434,6 +452,7 @@ function dropHandler(event) {
     if (event.dataTransfer.items[0].kind === 'file') {
       var file = event.dataTransfer.items[0].getAsFile();
       console.log(`Getting contents of file ${file.name}`);
+      filename = file.name;
       file.text().then(text => {
         document.getElementById("textarea").value = text;
         document.getElementById("textareawrapper").classList.add("is-dirty");
@@ -462,11 +481,13 @@ function populateTextArea() {
   var textToSet = JSON.stringify(jsonObj, null, 2);
   textbox.value = textToSet;
   localStorage.setItem("jsonObj", textToSet);
+  return textToSet;
 }
 
 function clearAll() {
   console.log("clearing");
   localStorage.clear();
+  filename = defaultFilename
   document.getElementById("textarea").value = "";
   document.getElementById("textareawrapper").classList.remove("is-dirty");
   getJsonObjFromTextarea()

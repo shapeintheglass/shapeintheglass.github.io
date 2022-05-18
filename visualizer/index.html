@@ -3,9 +3,9 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Dialogue Visualizer</title>
+  <title>Dialogue Editor</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.brown-orange.min.css" />
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-indigo.min.css" />
   <script src="parser.js"></script>
   <style>
     .mdl-textfield__input {
@@ -18,7 +18,13 @@
 </head>
 
 <body>
-  <div class="mdl-layout mdl-js-layout">
+  <div class="mdl-layout mdl-js-layout" ondrop="dropHandler(event)" ondragover="event.preventDefault()">
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+        <span class="mdl-layout-title">Dialogue Editor</span>
+      </div>
+    </header>
+
     <main class="mdl-layout__content">
       <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
         <div class="mdl-card__title">
@@ -27,8 +33,8 @@
         <div class="mdl-card__supporting-text">
           <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width:100%;"
             id="textareawrapper">
-            <textarea class="mdl-textfield__input" type="text" onchange="textareaListener()" ondrop="dropHandler(event)"
-              rows="8" cols="100" id="textarea"></textarea>
+            <textarea class="mdl-textfield__input" type="text" onchange="textareaListener()" rows="8" cols="100"
+              id="textarea"></textarea>
             <label class="mdl-textfield__label" for="textarea">Paste JSON here or drag & drop file from
               Nova\TagDatabases\Dialogue</label>
           </div>
@@ -36,7 +42,7 @@
         <div class="mdl-card__actions">
           <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
             title="Update textbox with changes from table" onClick="populateTextArea()">
-            <span>Save Changes</span>
+            <span>Write Changes</span>
           </button>
           <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
             title="Clear local storage" onClick="clearAll()">
@@ -54,7 +60,8 @@
         </div>
 
         <div class="mdl-card__supporting-text">
-          Subchunk: <select id="subchunkSelector" onchange="selectorListener()"></select>
+          <div><span>Subchunk:</span> <select id="subchunkSelector" onchange="selectorListener()"></select></div>
+
           <div style="overflow-x:scroll">
             <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
               <thead>

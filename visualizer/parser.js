@@ -82,10 +82,12 @@ window.onload = function () {
       activePanel = "viz-panel";
       break;
   }
-  document.getElementById("tab-import").classList.remove("is-active");
-  document.getElementById("import-panel").classList.remove("is-active");
-  document.getElementById(activeTab).classList.add("is-active");
-  document.getElementById(activePanel).classList.add("is-active");
+  if (activeTab != undefined && activePanel != "") {
+    document.getElementById("tab-import").classList.remove("is-active");
+    document.getElementById("import-panel").classList.remove("is-active");
+    document.getElementById(activeTab).classList.add("is-active");
+    document.getElementById(activePanel).classList.add("is-active");
+  }
 
   let cached = localStorage.getItem("jsonObj");
   if (cached != null) {
@@ -497,6 +499,9 @@ function analytics() {
   analyticsLine.innerHTML = numLines;
   analyticsTags.innerHTML = tags.size;
   analyticsEvents.innerHTML = allEventsSet.size;
+
+  sortedEvents = new Array();
+
   sortedEvents = Array.from(allEventsSet);
   arrCaseInsensitiveSort(sortedEvents);
 
@@ -540,12 +545,15 @@ function updateAnalyticsTables() {
     let indexCell = document.createElement("td");
     let topicNameCell = document.createElement("td");
     topicNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
+    let subchunkNameCell = document.createElement("td");
+    subchunkNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
     let numSeqCell = document.createElement("td");
     let numLinesCell = document.createElement("td");
     let numTagsCell = document.createElement("td");
 
     indexCell.innerHTML = i;
     topicNameCell.innerHTML = event;
+    subchunkNameCell.innerHTML = subchunk;
     // Subtract two keys because we store the number of lines and number of tags as keys
     numSeqCell.innerHTML = Object.keys(subchunkAnalyticsTable[subchunk][event]).length - 2;
     numLinesCell.innerHTML = subchunkAnalyticsTable[subchunk][event].numLines;
@@ -553,6 +561,7 @@ function updateAnalyticsTables() {
 
     row.appendChild(indexCell);
     row.appendChild(topicNameCell);
+    row.appendChild(subchunkNameCell);
     row.appendChild(numSeqCell);
     row.appendChild(numLinesCell);
     row.appendChild(numTagsCell);

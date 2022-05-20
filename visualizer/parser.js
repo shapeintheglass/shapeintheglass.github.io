@@ -771,7 +771,7 @@ function populateVizTopicToolbar() {
     return;
   }
   // TODO: Use the subchunkIndex attribute
-  let subchunkIndex = vizSubchunkSelector.selectedIndex;
+  let subchunkIndex = vizSubchunkSelector.selectedIndex == -1 ? 0 : vizSubchunkSelector.selectedIndex;
   let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
   let subchunk = subchunkAnalyticsTable[subchunkName];
 

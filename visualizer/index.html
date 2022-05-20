@@ -33,6 +33,11 @@
     <header class="mdl-layout__header">
       <div class="mdl-layout__header-row">
         <span class="mdl-layout-title">Dialogue Editor<span id="title-filename"></span></span>
+        <div class="mdl-layout-spacer"></div>
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+          title="Clear local storage" onClick="clearAll()">
+          <span>Clear</span>
+        </button>
       </div>
     </header>
     <main class="mdl-layout__content">
@@ -64,10 +69,6 @@
               <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
                 title="Update textbox with changes from table" onClick="populateTextArea()">
                 <span>Write Changes</span>
-              </button>
-              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-                title="Clear local storage" onClick="clearAll()">
-                <span>Clear</span>
               </button>
             </div>
           </div>
@@ -151,6 +152,9 @@
                     <tr>
                       <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
                         Index
+                      </th>
+                      <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
+                        Subchunk
                       </th>
                       <th style="font-weight: bold; position: sticky;" class="mdl-data-table__cell--non-numeric">
                         Topic

@@ -145,6 +145,7 @@ function getJsonObjFromTextarea() {
     analytics();
     populateVizToolbar();
     populateVizTopicToolbar();
+    drawGraph();
     return;
   }
 
@@ -158,6 +159,7 @@ function getJsonObjFromTextarea() {
   // Render graph
   populateVizToolbar();
   populateVizTopicToolbar();
+  drawGraph();
 }
 
 function getTagsFromCsv(csvStr, preserveOperator = false) {
@@ -564,18 +566,22 @@ function updateAnalyticsTables() {
     let indexCell = document.createElement("td");
     let topicNameCell = document.createElement("td");
     topicNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
+    let subchunkNameCell = document.createElement("td");
+    subchunkNameCell.setAttribute("class", "mdl-data-table__cell--non-numeric");
     let numSeqCell = document.createElement("td");
     let numLinesCell = document.createElement("td");
     let numTagsCell = document.createElement("td");
 
     indexCell.innerHTML = i;
-    topicNameCell.innerHTML = event;
+    topicNameCell.innerHTML = subchunkAnalyticsTable[subchunk][event].eventName;
+    subchunkNameCell.innerHTML = eventToSubchunkMap[event];
     // Subtract two keys because we store the number of lines and number of tags as keys
-    numSeqCell.innerHTML = Object.keys(subchunkAnalyticsTable[subchunk][event]).length - 2;
+    numSeqCell.innerHTML = Object.keys(subchunkAnalyticsTable[subchunk][event]).length - 3;
     numLinesCell.innerHTML = subchunkAnalyticsTable[subchunk][event].numLines;
     numTagsCell.innerHTML = subchunkAnalyticsTable[subchunk][event].numTags;
 
     row.appendChild(indexCell);
+    row.appendChild(subchunkNameCell);
     row.appendChild(topicNameCell);
     row.appendChild(numSeqCell);
     row.appendChild(numLinesCell);
@@ -699,6 +705,9 @@ function clearAll() {
   renderSubchunkSelector();
   renderTable();
   analytics();
+  populateVizToolbar();
+  populateVizTopicToolbar();
+  drawGraph();
 }
 
 // Listener updating the current global subchunk index and cached subchunk index every time the selector is updated
@@ -743,6 +752,12 @@ function populateVizToolbar() {
     option.setAttribute("subchunkIndex", i);
     vizSubchunkSelector.appendChild(option);
   };
+
+  let cachedVizSubchunkIndex = localStorage.getItem("vizSubchunkIndex");
+  if (cachedVizSubchunkIndex != undefined) {
+    let selected = subchunkNames[cachedVizSubchunkIndex];
+    vizSubchunkSelector.value = selected;
+  }
 }
 
 function populateVizTopicToolbar() {
@@ -766,13 +781,34 @@ function populateVizTopicToolbar() {
     let topic = subchunk[topicName];
     let link = document.createElement("a");
     link.setAttribute("class", "mdl-navigation__link");
-    link.setAttribute("onclick", `drawGraph(${subchunkIndex}, ${i})`);
+    link.setAttribute("onclick", `vizTopicListener(${subchunkIndex}, ${i})`);
     link.innerHTML = topic.eventName;
     vizTopicNavigator.appendChild(link);
   };
+
+  vizTopicListener(subchunkIndex, 0);
 }
 
-function drawGraph(subchunkIndex, topicIndex) {
+function vizTopicListener(subchunkIndex, topicIndex) {
+  localStorage.setItem("vizSubchunkIndex", subchunkIndex);
+  localStorage.setItem("vizTopicIndex", topicIndex);
+  drawGraph();
+}
+
+function drawGraph() {
+  let cy = document.getElementById('cy');
+  cy.innerHTML = "";
+  let vizSubchunkIndex = localStorage.getItem("vizSubchunkIndex");
+  let vizTopicIndex = localStorage.getItem("vizTopicIndex");
+  if (vizSubchunkIndex != undefined && vizTopicIndex != undefined) {
+    drawGraphHelper(vizSubchunkIndex, vizTopicIndex);
+  }
+}
+
+function drawGraphHelper(subchunkIndex, topicIndex) {
+  if (subchunkIndex == undefined || topicIndex == undefined) {
+    return;
+  }
   cy = cytoscape({
     container: document.getElementById('cy'),
     style: [

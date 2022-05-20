@@ -145,10 +145,12 @@ function getJsonObjFromTextarea() {
     jsonObj = JSON.parse(jsonInput);
   } catch (e) {
     jsonObj = {};
+    localStorage.setItem("vizSubchunkIndex", 0);
+    localStorage.setItem("vizTopicIndex", 0);
     analytics();
     populateVizToolbar();
     populateVizTopicToolbar();
-    drawGraph();
+    clearGraph();
     return;
   }
 
@@ -711,7 +713,7 @@ function clearAll() {
   analytics();
   populateVizToolbar();
   populateVizTopicToolbar();
-  drawGraph();
+  clearGraph();
 }
 
 // Listener updating the current global subchunk index and cached subchunk index every time the selector is updated
@@ -789,7 +791,10 @@ function populateVizTopicToolbar() {
     vizTopicNavigator.appendChild(link);
   };
 
-  vizTopicListener(subchunkIndex, 0);
+  let cachedVizTopicIndex = localStorage.getItem("vizTopicIndex");
+  let topicIndex = cachedVizTopicIndex ? cachedVizTopicIndex : 0;
+
+  vizTopicListener(subchunkIndex, topicIndex);
 }
 
 function vizTopicListener(subchunkIndex, topicIndex) {
@@ -798,12 +803,16 @@ function vizTopicListener(subchunkIndex, topicIndex) {
   drawGraph();
 }
 
-function drawGraph() {
+function clearGraph() {
   let cy = document.getElementById('cy');
   cy.innerHTML = "";
+}
+
+function drawGraph() {
+  clearGraph();
   let vizSubchunkIndex = localStorage.getItem("vizSubchunkIndex");
   let vizTopicIndex = localStorage.getItem("vizTopicIndex");
-  if (vizSubchunkIndex != undefined && vizTopicIndex != undefined) {
+  if (vizSubchunkIndex && vizTopicIndex) {
     drawGraphHelper(vizSubchunkIndex, vizTopicIndex);
   }
 }
@@ -819,13 +828,29 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         selector: 'node',
         css: {
           content: 'data(name)',
-          width: 50,
-          height: 50,
-          'background-color': '#61bffc',
+          width: 15,
+          height: 15,
+          'font-family': 'monospace',
+          'text-wrap': 'wrap',
+          'text-max-width': '500px',
+          'text-halign': 'right',
+          'text-justification': 'left',
+          'text-background-opacity': 1,
+          'text-background-color': '#ffffff',
+          'text-background-shape': 'rectangle',
+          'text-border-style': 'solid',
+          'text-border-opacity': 1,
+          'text-border-width': '1px',
+          'text-border-color': 'darkgray',
+          'text-margin-x': '5px',
+          'text-margin-y': '5px',
         }
       },
       {
         selector: "edge",
+        css: {
+          content: 'data(name)'
+        },
         style: {
           width: 1,
           "target-arrow-shape": "triangle",
@@ -840,7 +865,7 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
     ],
     // initial viewport state:
     zoom: 1,
-    pan: { x: 300, y: 50 },
+    pan: { x: 200, y: 100 },
   });
 
   let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
@@ -860,20 +885,122 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
 
     let sequenceName = sequenceIndex == "undefined" ? "" : sequenceIndex;
     cy.add([
-      { group: 'nodes', data: { id: topicName + sequenceIndex, name: sequenceName } },
+      { group: 'nodes', data: { id: topicName + sequenceIndex, name: "" } },
       { group: 'edges', data: { id: topicName + sequenceIndex + "edge", source: prevNodeId, target: topicName + sequenceIndex } }
     ]);
     prevNodeId = topicName + sequenceIndex;
 
     sequence.forEach(line => {
-      let nodeId = line["Id"] == undefined ? line["Txt"] : line["Id"];
+      let nodeId = crypto.randomUUID();
+      let specialNodeId = crypto.randomUUID();
+
+      let speakerTags = line["Spkr"];
+      let targetTags = line["Trgt"];
+
+      let actions = getTagsFromCsv(line["Dscr"]);
+      let branch = "";
+      let addSpeakerTags = "";
+      let addTargetTags = "";
+      let removeSpeakerTags = "";
+      let removeTargetTags = "";
+      let chooseResponse = "";
+      let specialNode = false;
+      actions.forEach(action => {
+        let tokens = action.split(":");
+        switch (tokens[0].toLowerCase()) {
+          case "chooseresponse":
+            chooseResponse = "CHOOSE RESPONSE";
+            specialNode = true;
+            break;
+          case "branch":
+            branch = tokens[1];
+            specialNode = true;
+            break;
+          case "addspeakertag":
+            addSpeakerTags = tokens[1];
+            specialNode = true;
+            break;
+          case "addtargettag":
+            addTargetTags = tokens[1];
+            specialNode = true;
+            break;
+          case "removespeakertag":
+            removeSpeakerTags = tokens[1];
+            specialNode = true;
+            break;
+          case "removetargettag":
+            removeTargetTags = tokens[1];
+            specialNode = true;
+            break;
+        }
+      });
+
+      let nodeName = `${line["Txt"]}\n\tSPKR: ${speakerTags}\n\tTRGT: ${targetTags}`;
+      let edgeName = ``;
       cy.add([
-        { group: 'nodes', data: { id: nodeId, name: line["Txt"] } },
-        { group: 'edges', data: { id: topicName + nodeId + "edge", source: topicName + sequenceIndex, target: nodeId } }
+        {
+          group: 'nodes',
+          data: {
+            id: nodeId,
+            name: nodeName
+          },
+          classes: 'multiline-auto'
+        },
+        {
+          group: 'edges',
+          data:
+          {
+            id: topicName + nodeId + "edge",
+            name: edgeName,
+            source: topicName + sequenceIndex,
+            target: nodeId
+          }
+        }
       ]);
+
+      if (specialNode) {
+        let specialNodeName = "";
+        if (chooseResponse) {
+          specialNodeName += "CHOOSE RESPONSE\n";
+        }
+        if (addSpeakerTags) {
+          specialNodeName += `ADD SPKR: ${addSpeakerTags}\n`;
+        }
+        if (addTargetTags) {
+          specialNodeName += `ADD TRGT: ${addTargetTags}\n`;
+        }
+        if (removeSpeakerTags) {
+          specialNodeName += `REM SPKR: ${removeSpeakerTags}\n`;
+        }
+        if (removeTargetTags) {
+          specialNodeName += `REM TRGT: ${removeTargetTags}\n`;
+        }
+        if (branch) {
+          specialNodeName += `GOTO: ${branch}\n`;
+        }
+        cy.add([
+          {
+            group: 'nodes',
+            data: {
+              id: specialNodeId,
+              name: specialNodeName
+            },
+            classes: 'multiline-auto'
+          },
+          {
+            group: 'edges',
+            data:
+            {
+              id: topicName + specialNodeId + "edge",
+              source: nodeId,
+              target: specialNodeId
+            }
+          }
+        ]);
+      }
+
     });
   });
-
 
   cy
     .elements()

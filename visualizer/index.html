@@ -34,10 +34,24 @@
       <div class="mdl-layout__header-row">
         <span class="mdl-layout-title">Dialogue Editor<span id="title-filename"></span></span>
         <div class="mdl-layout-spacer"></div>
-        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-          title="Clear local storage" onClick="clearAll()">
-          <span>Clear</span>
-        </button>
+        <span style="padding:5px">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+            title="Update textbox with changes from table" onClick="populateTextArea()">
+            <span>Save Changes</span>
+          </button>
+        </span>
+        <span style="padding:5px">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+            title="Update textbox with changes from table" onClick="exportJson()">
+            <span>Export Changes</span>
+          </button>
+        </span>
+        <span style="padding:5px">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+            title="Clear local storage" onClick="clearAll()">
+            <span>Clear</span>
+          </button>
+        </span>
       </div>
     </header>
     <main class="mdl-layout__content">
@@ -66,10 +80,7 @@
               </div>
             </div>
             <div class="mdl-card__actions">
-              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-                title="Update textbox with changes from table" onClick="populateTextArea()">
-                <span>Write Changes</span>
-              </button>
+
             </div>
           </div>
           <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">

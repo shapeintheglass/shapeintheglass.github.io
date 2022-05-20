@@ -106,33 +106,36 @@ window.onload = function () {
 
 document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === 's') {
-    console.log("save keypress detected");
-    snackbar("Updated JSON text");
     e.preventDefault();
+    console.log("save keypress detected");
     populateTextArea();
   }
-
   if (e.ctrlKey && e.key === 'e') {
-    snackbar("Exporting to file");
+    console.log("export keypress detected");
     e.preventDefault();
-    let textToSet = populateTextArea();
-    let file = new Blob([textToSet], { type: "text" });
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-      window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-      let a = document.createElement("a"),
-        url = URL.createObjectURL(file);
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function () {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 0);
-    }
+    exportJson();
   }
 });
+
+function exportJson() {
+  snackbar("Exporting to file");
+  let textToSet = populateTextArea();
+  let file = new Blob([textToSet], { type: "text" });
+  if (window.navigator.msSaveOrOpenBlob) // IE10+
+    window.navigator.msSaveOrOpenBlob(file, filename);
+  else { // Others
+    let a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  }
+}
 
 // Loads JSON from the textarea and parses it into an object
 function getJsonObjFromTextarea() {
@@ -687,6 +690,7 @@ function textareaListener() {
 
 // Populates the text area with what is currenly in the global jsonObj variable
 function populateTextArea() {
+  snackbar("Updated text area");
   let textbox = document.getElementById("textarea");
   let textToSet = JSON.stringify(jsonObj, null, 2);
   textbox.value = textToSet;
@@ -723,7 +727,6 @@ function selectorListener() {
 //#region Snackbar
 
 function snackbar(msg) {
-  foo();
   let notification = document.querySelector('.mdl-js-snackbar');
   let data = {
     message: msg,

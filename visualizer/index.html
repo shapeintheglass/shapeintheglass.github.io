@@ -6,6 +6,10 @@
   <title>Dialogue Editor</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-indigo.min.css" />
+  <script src="https://code.jquery.com/jquery-2.1.3.js"></script>
+  <script src="https://unpkg.com/cytoscape@2.7.16/dist/cytoscape.js"></script>
+  <script src="https://unpkg.com/dagre@0.7.3/dist/dagre.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cytoscape/cytoscape.js-dagre@1.4.0/cytoscape-dagre.js"></script>
   <script src="parser.js"></script>
   <style>
     .mdl-textfield__input {
@@ -13,6 +17,13 @@
       font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
       font-size: 14px;
       resize: none;
+    }
+
+    #cy {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+
     }
   </style>
 </head>
@@ -164,7 +175,17 @@
 
         </div>
         <div class="mdl-tabs__panel" id="viz-panel">
-          Placeholder
+          <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
+            <div class="mdl-layout__drawer" style="width:auto">
+              <select id="viz-subchunk-selector" onchange="populateVizTopicToolbar()"></select>
+              <nav class="mdl-navigation" id="viz-topic-navigator"></nav>
+            </div>
+            <main class="mdl-layout__content">
+              <div class="page-content">
+                <div id="cy"></div>
+              </div>
+            </main>
+          </div>
         </div>
       </div>
 

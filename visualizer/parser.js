@@ -1,5 +1,3 @@
-'use strict';
-
 const defaultFilename = "text.json";
 
 // Main container for all content in the imported file
@@ -28,6 +26,8 @@ var topicAnalyticsTable = {};
 
 // Sorted list of events in current file
 var sortedEvents;
+
+var cy;
 
 // Column order
 const columnList = ["Actions", "LineId", "Clr", "Evt", "Txt", "Wgt", "Cool", "Spkr", "Trgt", "Dscr", "Snd", "Cmt", "Obj1", "Obj2", "Id", "Loc"];
@@ -98,7 +98,9 @@ window.onload = function () {
     subchunkIndex = cachedSubchunkIndex;
   }
   filename = localStorage.getItem("filename");
-  document.getElementById("title-filename").innerHTML = `: ${filename}`;
+  if (filename != undefined) {
+    document.getElementById("title-filename").innerHTML = `: ${filename}`;
+  }
   renderSubchunkSelector();
 }
 
@@ -141,6 +143,8 @@ function getJsonObjFromTextarea() {
   } catch (e) {
     jsonObj = {};
     analytics();
+    populateVizToolbar();
+    populateVizTopicToolbar();
     return;
   }
 
@@ -151,6 +155,9 @@ function getJsonObjFromTextarea() {
 
   // Run analytics
   analytics();
+  // Render graph
+  populateVizToolbar();
+  populateVizTopicToolbar();
 }
 
 function getTagsFromCsv(csvStr, preserveOperator = false) {
@@ -468,6 +475,7 @@ function analytics() {
 
       if (subchunkAnalyticsTable[subchunkName][longEventName][eventSubTag] == undefined) {
         subchunkAnalyticsTable[subchunkName][longEventName][eventSubTag] = new Array();
+        subchunkAnalyticsTable[subchunkName][longEventName]["eventName"] = shortEventName;
       }
 
       subchunkAnalyticsTable[subchunkName][longEventName][eventSubTag].push(line);
@@ -475,6 +483,7 @@ function analytics() {
 
 
       allEventsSet.add(longEventName);
+      eventToLinesMap[longEventName] = line;
       eventToSubchunkMap[longEventName] = subchunkName;
 
       // Get all tags invoked in the speaker/target columns
@@ -644,7 +653,9 @@ function dropHandler(event) {
       let file = event.dataTransfer.items[0].getAsFile();
       console.log(`Getting contents of file ${file.name}`);
       filename = file.name;
-      document.getElementById("title-filename").innerHTML = `: ${filename}`;
+      if (filename != undefined) {
+        document.getElementById("title-filename").innerHTML = `: ${filename}`;
+      }
       localStorage.setItem("filename", filename);
       file.text().then(text => {
         document.getElementById("textarea").value = text;
@@ -703,6 +714,7 @@ function selectorListener() {
 //#region Snackbar
 
 function snackbar(msg) {
+  foo();
   let notification = document.querySelector('.mdl-js-snackbar');
   let data = {
     message: msg,
@@ -712,3 +724,124 @@ function snackbar(msg) {
 }
 
 //#endregion Snackbar
+
+
+//#region Visualization 
+
+function populateVizToolbar() {
+  let vizSubchunkSelector = document.getElementById('viz-subchunk-selector');
+  vizSubchunkSelector.innerHTML = "";
+  if (jsonObj.SubChunks == undefined) {
+    return;
+  }
+
+  let subchunkNames = Object.keys(subchunkAnalyticsTable);
+  for (let i = 0; i < subchunkNames.length; i++) {
+    let subchunkName = subchunkNames[i];
+    let option = document.createElement("option");
+    option.innerHTML = subchunkName;
+    option.setAttribute("subchunkIndex", i);
+    vizSubchunkSelector.appendChild(option);
+  };
+}
+
+function populateVizTopicToolbar() {
+  let vizSubchunkSelector = document.getElementById('viz-subchunk-selector');
+  let vizTopicNavigator = document.getElementById('viz-topic-navigator');
+  vizTopicNavigator.innerHTML = "";
+  if (jsonObj.SubChunks == undefined) {
+    return;
+  }
+  // TODO: Use the subchunkIndex attribute
+  let subchunkIndex = vizSubchunkSelector.selectedIndex;
+  let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
+  let subchunk = subchunkAnalyticsTable[subchunkName];
+
+  let topicNames = Object.keys(subchunk);
+  for (let i = 0; i < topicNames.length; i++) {
+    let topicName = topicNames[i];
+    if (topicName == "numLines" || topicName == "numTopics" || topicName == "eventName") {
+      break;
+    }
+    let topic = subchunk[topicName];
+    let link = document.createElement("a");
+    link.setAttribute("class", "mdl-navigation__link");
+    link.setAttribute("onclick", `drawGraph(${subchunkIndex}, ${i})`);
+    link.innerHTML = topic.eventName;
+    vizTopicNavigator.appendChild(link);
+  };
+}
+
+function drawGraph(subchunkIndex, topicIndex) {
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    style: [
+      {
+        selector: 'node',
+        css: {
+          content: 'data(name)',
+          width: 50,
+          height: 50,
+          'background-color': '#61bffc',
+        }
+      },
+      {
+        selector: "edge",
+        style: {
+          width: 1,
+          "target-arrow-shape": "triangle",
+          "line-color": "#9dbaea",
+          "target-arrow-color": "#9dbaea",
+          "curve-style": "bezier"
+        },
+        css: {
+          content: 'data(name)',
+        }
+      }
+    ],
+    // initial viewport state:
+    zoom: 1,
+    pan: { x: 300, y: 50 },
+  });
+
+  let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
+  let topicName = Object.keys(subchunkAnalyticsTable[subchunkName])[topicIndex];
+
+  let topic = subchunkAnalyticsTable[subchunkName][topicName];
+  cy.add([
+    { group: 'nodes', data: { id: topicName, name: topic.eventName } },
+  ]);
+
+  let prevNodeId = topicName;
+  Object.keys(topic).forEach(sequenceIndex => {
+    if (sequenceIndex == "numLines" || sequenceIndex == "numTags" || sequenceIndex == "eventName") {
+      return;
+    }
+    let sequence = topic[sequenceIndex];
+
+    let sequenceName = sequenceIndex == "undefined" ? "" : sequenceIndex;
+    cy.add([
+      { group: 'nodes', data: { id: topicName + sequenceIndex, name: sequenceName } },
+      { group: 'edges', data: { id: topicName + sequenceIndex + "edge", source: prevNodeId, target: topicName + sequenceIndex } }
+    ]);
+    prevNodeId = topicName + sequenceIndex;
+
+    sequence.forEach(line => {
+      let nodeId = line["Id"] == undefined ? line["Txt"] : line["Id"];
+      cy.add([
+        { group: 'nodes', data: { id: nodeId, name: line["Txt"] } },
+        { group: 'edges', data: { id: topicName + nodeId + "edge", source: topicName + sequenceIndex, target: nodeId } }
+      ]);
+    });
+  });
+
+
+  cy
+    .elements()
+    .layout({
+      name: "dagre",
+      fit: false
+    });
+}
+
+//#endregion Visualization 

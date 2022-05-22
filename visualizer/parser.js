@@ -818,7 +818,7 @@ function drawGraph() {
 }
 
 function drawGraphHelper(subchunkIndex, topicIndex) {
-  if (subchunkIndex == undefined || topicIndex == undefined) {
+  if (subchunkIndex == undefined || subchunkIndex < 0 || topicIndex == undefined || topicIndex < 0) {
     return;
   }
   cy = cytoscape({
@@ -828,13 +828,14 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         selector: 'node',
         css: {
           content: 'data(name)',
-          width: 15,
-          height: 15,
+          width: 30,
+          height: 30,
           'font-family': 'monospace',
           'text-wrap': 'wrap',
           'text-max-width': '500px',
-          'text-halign': 'right',
-          'text-justification': 'left',
+          'text-justification': 'right',
+          'text-halign': 'center',
+          'text-valign': 'center',
           'text-background-opacity': 1,
           'text-background-color': '#ffffff',
           'text-background-shape': 'rectangle',
@@ -883,7 +884,6 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
     }
     let sequence = topic[sequenceIndex];
 
-    let sequenceName = sequenceIndex == "undefined" ? "" : sequenceIndex;
     cy.add([
       { group: 'nodes', data: { id: topicName + sequenceIndex, name: "" } },
       { group: 'edges', data: { id: topicName + sequenceIndex + "edge", source: prevNodeId, target: topicName + sequenceIndex } }
@@ -935,7 +935,24 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         }
       });
 
-      let nodeName = `${line["Txt"]}\n\tSPKR: ${speakerTags}\n\tTRGT: ${targetTags}`;
+      let nodeName = `${line["Txt"]}\n\tSPKR: ${speakerTags}\n\tTRGT: ${targetTags}\n`;
+
+      if (addSpeakerTags) {
+        nodeName += `\t+SPKR: ${addSpeakerTags}\n`;
+      }
+      if (addTargetTags) {
+        nodeName += `\t+TRGT: ${addTargetTags}\n`;
+      }
+      if (removeSpeakerTags) {
+        nodeName += `\t-SPKR: ${removeSpeakerTags}\n`;
+      }
+      if (removeTargetTags) {
+        nodeName += `\t-TRGT: ${removeTargetTags}\n`;
+      }
+      if (chooseResponse) {
+        nodeName += "\tCHOOSE RESPONSE\n";
+      }
+
       let edgeName = ``;
       cy.add([
         {
@@ -958,32 +975,37 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         }
       ]);
 
+      let topicIndex = -1;
       if (specialNode) {
         let specialNodeName = "";
-        if (chooseResponse) {
-          specialNodeName += "CHOOSE RESPONSE\n";
-        }
-        if (addSpeakerTags) {
-          specialNodeName += `ADD SPKR: ${addSpeakerTags}\n`;
-        }
-        if (addTargetTags) {
-          specialNodeName += `ADD TRGT: ${addTargetTags}\n`;
-        }
-        if (removeSpeakerTags) {
-          specialNodeName += `REM SPKR: ${removeSpeakerTags}\n`;
-        }
-        if (removeTargetTags) {
-          specialNodeName += `REM TRGT: ${removeTargetTags}\n`;
-        }
         if (branch) {
-          specialNodeName += `GOTO: ${branch}\n`;
+          // Locate the index of the branch to link to
+          let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
+          let branchLowerCase = branch.toLowerCase();
+          let topicKeys = Object.keys(subchunkAnalyticsTable[subchunkName]);
+          for (let i = 0; i < topicKeys.length; i++) {
+            let topicName = topicKeys[i];
+            let topic = subchunkAnalyticsTable[subchunkName][topicName];
+            if (topic.eventName == branchLowerCase) {
+              topicIndex = i;
+              break;
+            }
+          }
+          specialNodeName += `${branch}\n`;
         }
+
         cy.add([
           {
             group: 'nodes',
             data: {
               id: specialNodeId,
-              name: specialNodeName
+              name: specialNodeName,
+              subchunkIndex: subchunkIndex,
+              topicIndex: topicIndex,
+
+            },
+            css: {
+              color: 'blue'
             },
             classes: 'multiline-auto'
           },
@@ -1008,6 +1030,13 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
       name: "dagre",
       fit: false
     });
+
+  cy.on('tap', 'node', function () {
+    if (this.data('subchunkIndex') && this.data('topicIndex')) {
+      console.log(`redrawing graph at subchunkIndex ${this.data('subchunkIndex')} topicIndex ${this.data('topicIndex')}`);
+      drawGraphHelper(this.data('subchunkIndex'), this.data('topicIndex'));
+    }
+  });
 }
 
 //#endregion Visualization 

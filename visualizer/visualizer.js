@@ -6,6 +6,7 @@ function renderVizTab() {
 function clearVizTab() {
     subchunkAnalyticsTable = undefined;
     setVizSubchunkAndTopicIndeces(0, 0);
+    clearGraph();
     renderVizTab();
 }
 
@@ -89,7 +90,6 @@ function clearGraph() {
 }
 
 function drawGraphHelper(subchunkIndex, topicIndex) {
-    console.log(`drawing graph at subchunk index ${subchunkIndex} topic index ${topicIndex}`);
     clearGraph();
     if (!subchunkAnalyticsTable || !subchunkIndex || subchunkIndex < 0 || !topicIndex || topicIndex < 0) {
         return;
@@ -152,8 +152,11 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         return;
     }
 
-    let topicName = Object.keys(subchunkAnalyticsTable[subchunkName])[topicIndex];
+    let topicKeys = Object.keys(subchunkAnalyticsTable[subchunkName]);
+    topicIndex = topicIndex >= topicKeys.length ? 0 : topicIndex;
+    let topicName = topicKeys[topicIndex];
 
+    console.log(`drawing graph at subchunk index ${subchunkIndex} topic index ${topicIndex}`);
     let topic = subchunkAnalyticsTable[subchunkName][topicName];
     cy.add([
         { group: 'nodes', data: { id: topicName, name: topic.eventName } },
@@ -192,7 +195,6 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                 switch (tokens[0].toLowerCase()) {
                     case "chooseresponse":
                         chooseResponse = "CHOOSE RESPONSE";
-                        specialNode = true;
                         break;
                     case "branch":
                         branch = tokens[1];
@@ -200,19 +202,15 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                         break;
                     case "addspeakertag":
                         addSpeakerTags = tokens[1];
-                        specialNode = true;
                         break;
                     case "addtargettag":
                         addTargetTags = tokens[1];
-                        specialNode = true;
                         break;
                     case "removespeakertag":
                         removeSpeakerTags = tokens[1];
-                        specialNode = true;
                         break;
                     case "removetargettag":
                         removeTargetTags = tokens[1];
-                        specialNode = true;
                         break;
                 }
             });
@@ -319,4 +317,8 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
             drawGraphHelper(this.data('subchunkIndex'), this.data('topicIndex'));
         }
     });
+}
+
+function getCytoscapeGraphForTopic(subchunkIndex, topicIndex) {
+
 }

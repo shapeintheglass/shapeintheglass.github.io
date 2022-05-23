@@ -84,7 +84,6 @@
               </div>
             </div>
             <div class="mdl-card__actions">
-
             </div>
           </div>
           <div class="mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
@@ -197,6 +196,11 @@
         <div class="mdl-tabs__panel" id="viz-panel">
           <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
             <div class="mdl-layout__drawer" style="width:auto">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent"
+                onclick="onSaveAsPngClick()">
+                Save as PNG
+                <i class="material-icons">save</i>
+              </button>
               <select id="viz-subchunk-selector" onchange="populateVizTopicToolbar()"></select>
               <nav class="mdl-navigation" id="viz-topic-navigator"></nav>
             </div>

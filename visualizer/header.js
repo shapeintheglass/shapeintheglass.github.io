@@ -74,21 +74,25 @@ function exportJson() {
   if (jsonObj) {
     snackbar("Exporting to file");
     let textToSet = populateTextArea();
-    let file = new Blob([textToSet], { type: "text" });
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-      window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-      let a = document.createElement("a"),
-        url = URL.createObjectURL(file);
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function () {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 0);
-    }
+    saveToFile(filename, textToSet, 'text');
+  }
+}
+
+function saveToFile(fileNameToSave, fileContents, type) {
+  let file = new Blob([fileContents], { type: type });
+  if (window.navigator.msSaveOrOpenBlob) // IE10+
+    window.navigator.msSaveOrOpenBlob(file, fileNameToSave);
+  else { // Others
+    let a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = fileNameToSave;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
   }
 }
 

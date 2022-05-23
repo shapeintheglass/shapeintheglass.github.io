@@ -142,6 +142,32 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         pan: { x: 200, y: 100 },
     });
 
+    let nodesToAdd = getCytoscapeGraphForTopic(subchunkIndex, topicIndex);
+    cy.add(nodesToAdd);
+
+    cy.elements()
+        .layout({
+            name: "dagre",
+            fit: false
+        });
+
+    cy.on('tap', 'node', function () {
+        if (this.data('subchunkIndex') >= 0 && this.data('topicIndex') >= 0) {
+            console.log(`redrawing graph at subchunkIndex ${this.data('subchunkIndex')} topicIndex ${this.data('topicIndex')} for node ${this.data('id')}`);
+            cy.add(getCytoscapeGraphForTopic(this.data('subchunkIndex'), this.data('topicIndex'), this.data('id')));
+            this.data('subchunkIndex', -1);
+            this.data('topicIndex', -1);
+            cy.elements()
+                .layout({
+                    name: "dagre",
+                    fit: false
+                });
+        }
+    });
+}
+
+function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId) {
+    let toReturn = [];
     let subchunkAnalyticsTableKeys = Object.keys(subchunkAnalyticsTable);
     if (!subchunkAnalyticsTableKeys) {
         return;
@@ -158,22 +184,29 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
 
     console.log(`drawing graph at subchunk index ${subchunkIndex} topic index ${topicIndex}`);
     let topic = subchunkAnalyticsTable[subchunkName][topicName];
-    cy.add([
-        { group: 'nodes', data: { id: topicName, name: topic.eventName } },
-    ]);
+    let topicNodeId = crypto.randomUUID();
+    toReturn.push(
+        { group: 'nodes', data: { id: topicNodeId, name: topic.eventName } },
+    );
 
-    let prevNodeId = topicName;
+    if (rootId) {
+        let edgeId = crypto.randomUUID();
+        toReturn.push({ group: 'edges', data: { id: edgeId, source: rootId, target: topicNodeId } });
+    }
+
+    let prevNodeId = topicNodeId;
     Object.keys(topic).forEach(sequenceIndex => {
         if (sequenceIndex == "numLines" || sequenceIndex == "numTags" || sequenceIndex == "eventName") {
             return;
         }
         let sequence = topic[sequenceIndex];
-
-        cy.add([
-            { group: 'nodes', data: { id: topicName + sequenceIndex, name: "" } },
-            { group: 'edges', data: { id: topicName + sequenceIndex + "edge", source: prevNodeId, target: topicName + sequenceIndex } }
-        ]);
-        prevNodeId = topicName + sequenceIndex;
+        let sequenceNodeId = crypto.randomUUID();
+        let sequenceEdgeId = crypto.randomUUID();
+        toReturn.push(
+            { group: 'nodes', data: { id: sequenceNodeId, name: "" } },
+            { group: 'edges', data: { id: sequenceEdgeId, source: prevNodeId, target: sequenceNodeId } }
+        );
+        prevNodeId = sequenceNodeId;
 
         sequence.forEach(line => {
             let nodeId = crypto.randomUUID();
@@ -234,7 +267,7 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
             }
 
             let edgeName = ``;
-            cy.add([
+            toReturn.push(
                 {
                     group: 'nodes',
                     data: {
@@ -249,11 +282,11 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                     {
                         id: topicName + nodeId + "edge",
                         name: edgeName,
-                        source: topicName + sequenceIndex,
+                        source: sequenceNodeId,
                         target: nodeId
                     }
                 }
-            ]);
+            );
 
             let topicIndex = -1;
             if (specialNode) {
@@ -274,7 +307,7 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                     specialNodeName += `${branch}\n`;
                 }
 
-                cy.add([
+                toReturn.push(
                     {
                         group: 'nodes',
                         data: {
@@ -298,27 +331,22 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                             target: specialNodeId
                         }
                     }
-                ]);
+                );
             }
 
         });
     });
-
-    cy
-        .elements()
-        .layout({
-            name: "dagre",
-            fit: false
-        });
-
-    cy.on('tap', 'node', function () {
-        if (this.data('subchunkIndex') && this.data('topicIndex')) {
-            console.log(`redrawing graph at subchunkIndex ${this.data('subchunkIndex')} topicIndex ${this.data('topicIndex')}`);
-            drawGraphHelper(this.data('subchunkIndex'), this.data('topicIndex'));
-        }
-    });
+    return toReturn;
 }
 
-function getCytoscapeGraphForTopic(subchunkIndex, topicIndex) {
-
+function onSaveAsPngClick() {
+    let pngContents = cy.png();
+    let pngTitle = `${localStorage.getItem(localStorageVizSubchunkIndexKey)}_${localStorage.getItem(localStorageVizTopicIndexKey)}.png`;
+    if (pngContents && pngTitle) {
+        snackbar("Saving to png");
+        var download = document.createElement('a');
+        download.href = pngContents;
+        download.download = pngTitle;
+        download.click();
+    }
 }

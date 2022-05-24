@@ -228,6 +228,7 @@ function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId, visitedBra
         } else {
             // If sequence only contains one line, skip the sequence node
             prevNodeId = getNodeForLine(prevNodeId, sequence[0], toReturn, subchunkIndex, topicName, visitedBranches);
+            prevSequenceId = prevNodeId;
         }
 
 

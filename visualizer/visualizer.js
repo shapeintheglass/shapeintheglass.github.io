@@ -140,7 +140,7 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         ],
         // initial viewport state:
         zoom: 1,
-        pan: { x: 200, y: 100 },
+        pan: { x: 500, y: 100 },
     });
 
     let visitedBranches = new Set();
@@ -207,154 +207,168 @@ function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId, visitedBra
         );
     }
 
+    let prevSequenceId = prevNodeId;
     Object.keys(topic).forEach(sequenceIndex => {
         if (sequenceIndex == "numLines" || sequenceIndex == "numTags" || sequenceIndex == "eventName") {
             return;
         }
         let sequence = topic[sequenceIndex];
-        let sequenceNodeId = crypto.randomUUID();
-        let sequenceEdgeId = crypto.randomUUID();
-        toReturn.push(
-            { group: 'nodes', data: { id: sequenceNodeId, name: "" } },
-            { group: 'edges', data: { id: sequenceEdgeId, source: prevNodeId, target: sequenceNodeId } }
-        );
-        prevNodeId = sequenceNodeId;
-
-        sequence.forEach(line => {
-            let nodeId = crypto.randomUUID();
-            let specialNodeId = crypto.randomUUID();
-
-            let speakerTags = line["Spkr"];
-            let targetTags = line["Trgt"];
-
-            let actions = getTagsFromCsv(line["Dscr"]);
-            let branch = "";
-            let addSpeakerTags = "";
-            let addTargetTags = "";
-            let removeSpeakerTags = "";
-            let removeTargetTags = "";
-            let chooseResponse = "";
-            let specialNode = false;
-            actions.forEach(action => {
-                let tokens = action.split(":");
-                switch (tokens[0].toLowerCase()) {
-                    case "chooseresponse":
-                        chooseResponse = "CHOOSE RESPONSE";
-                        break;
-                    case "branch":
-                        branch = tokens[1];
-                        specialNode = true;
-                        break;
-                    case "addspeakertag":
-                        addSpeakerTags = tokens[1];
-                        break;
-                    case "addtargettag":
-                        addTargetTags = tokens[1];
-                        break;
-                    case "removespeakertag":
-                        removeSpeakerTags = tokens[1];
-                        break;
-                    case "removetargettag":
-                        removeTargetTags = tokens[1];
-                        break;
-                }
-            });
-
-            let nodeName = `${line["Txt"]}\n\tSPKR: ${speakerTags}\n\tTRGT: ${targetTags}\n`;
-
-            if (addSpeakerTags) {
-                nodeName += `\t+SPKR: ${addSpeakerTags}\n`;
-            }
-            if (addTargetTags) {
-                nodeName += `\t+TRGT: ${addTargetTags}\n`;
-            }
-            if (removeSpeakerTags) {
-                nodeName += `\t-SPKR: ${removeSpeakerTags}\n`;
-            }
-            if (removeTargetTags) {
-                nodeName += `\t-TRGT: ${removeTargetTags}\n`;
-            }
-            if (chooseResponse) {
-                nodeName += "\tCHOOSE RESPONSE\n";
-            }
-
-            let edgeId = crypto.randomUUID();
+        if ((sequenceIndex > 1 && topic[sequenceIndex - 1] && topic[sequenceIndex - 1].length > 1) || sequence.length > 1) {
+            let sequenceNodeId = crypto.randomUUID();
+            let sequenceEdgeId = crypto.randomUUID();
             toReturn.push(
-                {
-                    group: 'nodes',
-                    data: {
-                        id: nodeId,
-                        name: nodeName
-                    },
-                    classes: 'multiline-auto'
-                },
-                {
-                    group: 'edges',
-                    data:
-                    {
-                        id: edgeId,
-                        source: sequenceNodeId,
-                        target: nodeId
-                    }
-                }
+                { group: 'nodes', data: { id: sequenceNodeId, name: "" } },
+                { group: 'edges', data: { id: sequenceEdgeId, source: prevSequenceId, target: sequenceNodeId } }
             );
+            // Attach each line at this sequence index to the given sequence
+            sequence.forEach(line => {
+                prevNodeId = getNodeForLine(sequenceNodeId, line, toReturn, subchunkIndex, topicName, visitedBranches);
+            });
+            prevSequenceId = sequenceNodeId;
+        } else {
+            // If sequence only contains one line, skip the sequence node
+            prevNodeId = getNodeForLine(prevNodeId, sequence[0], toReturn, subchunkIndex, topicName, visitedBranches);
+        }
 
-            let topicIndex = -1;
-            if (specialNode) {
-                let specialNodeName = "";
-                if (branch) {
-                    // Locate the index of the branch to link to
-                    let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
-                    let branchLowerCase = branch.toLowerCase();
-                    let topicKeys = Object.keys(subchunkAnalyticsTable[subchunkName]);
-                    for (let i = 0; i < topicKeys.length; i++) {
-                        let topicName = topicKeys[i];
-                        let topic = subchunkAnalyticsTable[subchunkName][topicName];
-                        if (topic.eventName == branchLowerCase) {
-                            topicIndex = i;
-                            break;
-                        }
-                    }
-                    specialNodeName += `${branch}\n`;
-                }
 
-                toReturn.push(
-                    {
-                        group: 'nodes',
-                        data: {
-                            id: specialNodeId,
-                            name: specialNodeName,
-                            subchunkIndex: subchunkIndex,
-                            topicIndex: topicIndex,
-
-                        },
-                        css: {
-                            color: 'blue'
-                        },
-                        classes: 'multiline-auto'
-                    },
-                    {
-                        group: 'edges',
-                        data:
-                        {
-                            id: topicName + specialNodeId + "edge",
-                            source: nodeId,
-                            target: specialNodeId
-                        }
-                    }
-                );
-                // Draw additional branches if qualified
-                if (visitedBranches) {
-                    let branchNodes = getCytoscapeGraphForTopic(subchunkIndex, topicIndex, specialNodeId, visitedBranches, toReturn);
-                    if (branchNodes.length > 0) {
-                        toReturn.push.apply(branchNodes);
-                    }
-                }
-            }
-
-        });
     });
     return toReturn;
+}
+
+function getNodeForLine(sequenceNodeId, line, toReturn, subchunkIndex, topicName, visitedBranches) {
+    let nodeId = crypto.randomUUID();
+    let specialNodeId = crypto.randomUUID();
+
+    let speakerTags = line["Spkr"];
+    let targetTags = line["Trgt"];
+
+    let actions = getTagsFromCsv(line["Dscr"]);
+    let branch = "";
+    let addSpeakerTags = "";
+    let addTargetTags = "";
+    let removeSpeakerTags = "";
+    let removeTargetTags = "";
+    let chooseResponse = "";
+    let specialNode = false;
+    actions.forEach(action => {
+        let tokens = action.split(":");
+        switch (tokens[0].toLowerCase()) {
+            case "chooseresponse":
+                chooseResponse = "CHOOSE RESPONSE";
+                break;
+            case "branch":
+                branch = tokens[1];
+                specialNode = true;
+                break;
+            case "addspeakertag":
+                addSpeakerTags = tokens[1];
+                break;
+            case "addtargettag":
+                addTargetTags = tokens[1];
+                break;
+            case "removespeakertag":
+                removeSpeakerTags = tokens[1];
+                break;
+            case "removetargettag":
+                removeTargetTags = tokens[1];
+                break;
+        }
+    });
+
+    let nodeName = `${line["Txt"]}\n\tSPKR: ${speakerTags}\n\tTRGT: ${targetTags}\n`;
+
+    if (addSpeakerTags) {
+        nodeName += `\t+SPKR: ${addSpeakerTags}\n`;
+    }
+    if (addTargetTags) {
+        nodeName += `\t+TRGT: ${addTargetTags}\n`;
+    }
+    if (removeSpeakerTags) {
+        nodeName += `\t-SPKR: ${removeSpeakerTags}\n`;
+    }
+    if (removeTargetTags) {
+        nodeName += `\t-TRGT: ${removeTargetTags}\n`;
+    }
+    if (chooseResponse) {
+        nodeName += "\tCHOOSE RESPONSE\n";
+    }
+
+    let edgeId = crypto.randomUUID();
+    toReturn.push(
+        {
+            group: 'nodes',
+            data: {
+                id: nodeId,
+                name: nodeName
+            },
+            classes: 'multiline-auto'
+        },
+        {
+            group: 'edges',
+            data:
+            {
+                id: edgeId,
+                source: sequenceNodeId,
+                target: nodeId
+            }
+        }
+    );
+
+    let finalNodeId = nodeId;
+    let topicIndex = -1;
+    if (specialNode) {
+        finalNodeId = specialNodeId;
+        let specialNodeName = "";
+        if (branch) {
+            // Locate the index of the branch to link to
+            let subchunkName = Object.keys(subchunkAnalyticsTable)[subchunkIndex];
+            let branchLowerCase = branch.toLowerCase();
+            let topicKeys = Object.keys(subchunkAnalyticsTable[subchunkName]);
+            for (let i = 0; i < topicKeys.length; i++) {
+                let topicName = topicKeys[i];
+                let topic = subchunkAnalyticsTable[subchunkName][topicName];
+                if (topic.eventName == branchLowerCase) {
+                    topicIndex = i;
+                    break;
+                }
+            }
+            specialNodeName += `${branch}\n`;
+        }
+
+        toReturn.push(
+            {
+                group: 'nodes',
+                data: {
+                    id: specialNodeId,
+                    name: specialNodeName,
+                    subchunkIndex: subchunkIndex,
+                    topicIndex: topicIndex,
+
+                },
+                css: {
+                    color: 'blue'
+                },
+                classes: 'multiline-auto'
+            },
+            {
+                group: 'edges',
+                data:
+                {
+                    id: topicName + specialNodeId + "edge",
+                    source: nodeId,
+                    target: specialNodeId
+                }
+            }
+        );
+        // Draw additional branches if qualified
+        if (visitedBranches) {
+            let branchNodes = getCytoscapeGraphForTopic(subchunkIndex, topicIndex, specialNodeId, visitedBranches, toReturn);
+            if (branchNodes.length > 0) {
+                toReturn.push.apply(branchNodes);
+            }
+        }
+    }
+    return finalNodeId;
 }
 
 function onSaveAsPngClick() {

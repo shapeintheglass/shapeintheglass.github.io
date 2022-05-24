@@ -202,13 +202,12 @@
             <div class="mdl-layout__drawer" style="width:auto">
               <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent"
                 onclick="onSaveAsPngClick()">
-                Export current view as JPG
+                Export as JPG
                 <i class="material-icons">save</i>
               </button>
-
               <div style="border-style:solid;border-width:1px">
-                <select class="mdl-textfield__input" id="viz-subchunk-selector"
-                  onchange="populateVizTopicToolbar()"></select>
+                <select class="mdl-textfield__input" id="viz-subchunk-selector" onchange="populateVizTopicToolbar()"
+                  title="Subchunk to load"></select>
               </div>
               <nav class="mdl-navigation" id="viz-topic-navigator"></nav>
             </div>

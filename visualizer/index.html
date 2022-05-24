@@ -92,10 +92,14 @@
                 <div class="mdl-card__title-text" id="jsonName"></div>
                 <div class="mdl-card__subtitle-text" id="locInfo"></div>
               </h2>
+
             </div>
             <div class="mdl-card__supporting-text">
               <p>Once imported, lines can be edited here. The table scrolls horizontally.</p>
-              <div><span>Subchunk:</span> <select id="subchunkSelector" onchange="onSubchunkSelectorChanged()"></select>
+              <p>For performance purposes, please choose a subchunk to edit:</p>
+              <div style="border-style:solid;border-width:1px">
+                <select id="subchunkSelector" class="mdl-textfield__input"
+                  onchange="onSubchunkSelectorChanged()"></select>
               </div>
               <div style="overflow-x:scroll">
                 <table class="mdl-data-table mdl-js-data-table" style="border: 1px">
@@ -198,10 +202,14 @@
             <div class="mdl-layout__drawer" style="width:auto">
               <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent"
                 onclick="onSaveAsPngClick()">
-                Save as PNG
+                Export current view as JPG
                 <i class="material-icons">save</i>
               </button>
-              <select id="viz-subchunk-selector" onchange="populateVizTopicToolbar()"></select>
+
+              <div style="border-style:solid;border-width:1px">
+                <select class="mdl-textfield__input" id="viz-subchunk-selector"
+                  onchange="populateVizTopicToolbar()"></select>
+              </div>
               <nav class="mdl-navigation" id="viz-topic-navigator"></nav>
             </div>
             <main class="mdl-layout__content">

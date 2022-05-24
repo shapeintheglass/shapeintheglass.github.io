@@ -101,8 +101,9 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                 selector: 'node',
                 css: {
                     content: 'data(name)',
-                    width: 30,
-                    height: 30,
+                    width: 1,
+                    height: 1,
+                    'background-opacity': '0',
                     'font-family': 'monospace',
                     'text-wrap': 'wrap',
                     'text-max-width': '500px',
@@ -110,7 +111,7 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                     'text-halign': 'center',
                     'text-valign': 'center',
                     'text-background-opacity': 1,
-                    'text-background-color': '#ffffff',
+                    'text-background-color': 'white',
                     'text-background-shape': 'rectangle',
                     'text-border-style': 'solid',
                     'text-border-opacity': 1,
@@ -353,15 +354,14 @@ function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId, visitedBra
 
         });
     });
-    console.log(toReturn.length);
     return toReturn;
 }
 
 function onSaveAsPngClick() {
-    let pngContents = cy.png({ scale: 10, bg: "white" });
-    let pngTitle = `${localStorage.getItem(localStorageVizSubchunkIndexKey)}_${localStorage.getItem(localStorageVizTopicIndexKey)}.png`;
+    let pngContents = cy.jpg({ full: "true" });
+    let pngTitle = `${localStorage.getItem(localStorageVizSubchunkIndexKey)}_${localStorage.getItem(localStorageVizTopicIndexKey)}.jpg`;
     if (pngContents && pngTitle) {
-        snackbar("Saving to png");
+        snackbar("Saving to jpg");
         var download = document.createElement('a');
         download.href = pngContents;
         download.download = pngTitle;

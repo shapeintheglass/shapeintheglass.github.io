@@ -142,7 +142,8 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
         pan: { x: 200, y: 100 },
     });
 
-    let nodesToAdd = getCytoscapeGraphForTopic(subchunkIndex, topicIndex);
+    let visitedBranches = new Set();
+    let nodesToAdd = getCytoscapeGraphForTopic(subchunkIndex, topicIndex, undefined, visitedBranches);
     cy.add(nodesToAdd);
 
     cy.elements()
@@ -151,7 +152,7 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
             fit: false
         });
 
-    cy.on('tap', 'node', function () {
+    /*cy.on('tap', 'node', function () {
         if (this.data('subchunkIndex') >= 0 && this.data('topicIndex') >= 0) {
             console.log(`redrawing graph at subchunkIndex ${this.data('subchunkIndex')} topicIndex ${this.data('topicIndex')} for node ${this.data('id')}`);
             cy.add(getCytoscapeGraphForTopic(this.data('subchunkIndex'), this.data('topicIndex'), this.data('id')));
@@ -163,38 +164,48 @@ function drawGraphHelper(subchunkIndex, topicIndex) {
                     fit: false
                 });
         }
-    });
+    });*/
 }
 
-function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId) {
-    let toReturn = [];
-    let subchunkAnalyticsTableKeys = Object.keys(subchunkAnalyticsTable);
-    if (!subchunkAnalyticsTableKeys) {
-        return;
+function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId, visitedBranches, toReturn) {
+    if (!toReturn) {
+        toReturn = [];
     }
+    let subchunkAnalyticsTableKeys = Object.keys(subchunkAnalyticsTable);
     let subchunkName = subchunkAnalyticsTableKeys[subchunkIndex];
 
-    if (!subchunkAnalyticsTable[subchunkName]) {
-        return;
+    if (!subchunkAnalyticsTableKeys || !subchunkAnalyticsTable[subchunkName] || subchunkIndex < 0 || topicIndex < 0) {
+        return toReturn;
     }
 
     let topicKeys = Object.keys(subchunkAnalyticsTable[subchunkName]);
     topicIndex = topicIndex >= topicKeys.length ? 0 : topicIndex;
     let topicName = topicKeys[topicIndex];
 
-    console.log(`drawing graph at subchunk index ${subchunkIndex} topic index ${topicIndex}`);
     let topic = subchunkAnalyticsTable[subchunkName][topicName];
     let topicNodeId = crypto.randomUUID();
-    toReturn.push(
-        { group: 'nodes', data: { id: topicNodeId, name: topic.eventName } },
-    );
 
-    if (rootId) {
-        let edgeId = crypto.randomUUID();
-        toReturn.push({ group: 'edges', data: { id: edgeId, source: rootId, target: topicNodeId } });
+    // Do not redraw the same branch if already present in this graph
+    if (visitedBranches) {
+        if (topic?.eventName && visitedBranches.has(topic.eventName)) {
+            return toReturn;
+        }
+        visitedBranches.add(topic.eventName);
     }
 
+    console.log(`drawing graph at subchunk index ${subchunkIndex} topic index ${topicIndex}`);
+
     let prevNodeId = topicNodeId;
+
+    // If a root node is defined, do not draw the branch node
+    if (rootId) {
+        prevNodeId = rootId;
+    } else {
+        toReturn.push(
+            { group: 'nodes', data: { id: topicNodeId, name: topic.eventName } }
+        );
+    }
+
     Object.keys(topic).forEach(sequenceIndex => {
         if (sequenceIndex == "numLines" || sequenceIndex == "numTags" || sequenceIndex == "eventName") {
             return;
@@ -266,7 +277,7 @@ function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId) {
                 nodeName += "\tCHOOSE RESPONSE\n";
             }
 
-            let edgeName = ``;
+            let edgeId = crypto.randomUUID();
             toReturn.push(
                 {
                     group: 'nodes',
@@ -280,8 +291,7 @@ function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId) {
                     group: 'edges',
                     data:
                     {
-                        id: topicName + nodeId + "edge",
-                        name: edgeName,
+                        id: edgeId,
                         source: sequenceNodeId,
                         target: nodeId
                     }
@@ -332,15 +342,23 @@ function getCytoscapeGraphForTopic(subchunkIndex, topicIndex, rootId) {
                         }
                     }
                 );
+                // Draw additional branches if qualified
+                if (visitedBranches) {
+                    let branchNodes = getCytoscapeGraphForTopic(subchunkIndex, topicIndex, specialNodeId, visitedBranches, toReturn);
+                    if (branchNodes.length > 0) {
+                        toReturn.push.apply(branchNodes);
+                    }
+                }
             }
 
         });
     });
+    console.log(toReturn.length);
     return toReturn;
 }
 
 function onSaveAsPngClick() {
-    let pngContents = cy.png();
+    let pngContents = cy.png({ scale: 10, bg: "white" });
     let pngTitle = `${localStorage.getItem(localStorageVizSubchunkIndexKey)}_${localStorage.getItem(localStorageVizTopicIndexKey)}.png`;
     if (pngContents && pngTitle) {
         snackbar("Saving to png");

@@ -1,8 +1,11 @@
 const cultNameInputId = "cult-name-input";
+const cultistNameDivId = "cultist-names";
 const downloadButtonId = "download-button";
 
 
 const cotlCultNameKey = "CultName";
+const cotlFollowersArrKey = "Followers";
+const cotlFollowersNameKey = "Name";
 
 // Main container for all content in the imported file
 var jsonObj;
@@ -18,12 +21,26 @@ document.addEventListener('keydown', e => {
 });
 
 function populatePage(jsonObj) {
+  // Cult name
   document.getElementById(cultNameInputId).value = jsonObj[cotlCultNameKey]
+  // Cultist names
+  let cultistDiv = document.getElementById(cultistNameDivId);
+  let cultistNames = "";
+  jsonObj[cotlFollowersArrKey].forEach(follower => {
+    cultistNames += `<p>${follower[cotlFollowersNameKey]}: <input class="mdl-textfield__input" type="text" value="${follower[cotlFollowersNameKey]}"></p>`;
+  });
+  cultistDiv.innerHTML = cultistNames;
 }
 
 function updateJson() {
   // Cult name
   jsonObj[cotlCultNameKey] = document.getElementById(cultNameInputId).value;
+  // Cultist names
+  let cultistNameTextFields = Array.from(document.getElementById(cultistNameDivId).children);
+  for (let i = 0; i < cultistNameTextFields.length; i++) {
+    let newFollowerName = cultistNameTextFields[i].firstElementChild.value;
+    jsonObj[cotlFollowersArrKey][i][cotlFollowersNameKey] = newFollowerName;
+  }
 }
 
 function exportJson() {
@@ -85,7 +102,7 @@ function decryptOrGetJson(buffer) {
   try {
     jsonObj = JSON.parse(decryptText(buffer));
   } catch (e) {
-    var enc = new TextDecoder("utf-8");
+    let enc = new TextDecoder("utf-8");
     jsonObj = JSON.parse(enc.decode(buffer));
   }
 }
@@ -93,19 +110,19 @@ function decryptOrGetJson(buffer) {
 // Decrypts text in a save file
 // Copied from https://pentalex.github.io/COTL-SaveDecryptor/
 function decryptText(buffer) {
-  var bytes = new Uint8Array(buffer);
+  let bytes = new Uint8Array(buffer);
 
-  var keyBytes = bytes.slice(1, 17)
-  var IVBytes = bytes.slice(17, 33)
+  let keyBytes = bytes.slice(1, 17)
+  let IVBytes = bytes.slice(17, 33)
 
-  var newBytes = bytes.slice(1, bytes.length)
-  var aesCbc = new aesjs.ModeOfOperation.cbc(keyBytes, IVBytes);
-  var decryptedBytes = aesCbc.decrypt(newBytes);
+  let newBytes = bytes.slice(1, bytes.length)
+  let aesCbc = new aesjs.ModeOfOperation.cbc(keyBytes, IVBytes);
+  let decryptedBytes = aesCbc.decrypt(newBytes);
 
   // Convert our bytes back into text
-  var newDecryptedBytes = decryptedBytes.slice(32, decryptedBytes.length)
-  var unpaddedBytes = aesjs.padding.pkcs7.strip(newDecryptedBytes)
-  var decryptedText = aesjs.utils.utf8.fromBytes(unpaddedBytes);
+  let newDecryptedBytes = decryptedBytes.slice(32, decryptedBytes.length)
+  let unpaddedBytes = aesjs.padding.pkcs7.strip(newDecryptedBytes)
+  let decryptedText = aesjs.utils.utf8.fromBytes(unpaddedBytes);
   return decryptedText
 }
 

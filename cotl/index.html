@@ -11,8 +11,7 @@
   <script src="https://code.jquery.com/jquery-2.1.3.js"></script>
   <script src="header.js"></script>
   <style>
-    .mdl-card__supporting-text,
-    .mdl-textfield__label {
+    .mdl-card__supporting-text {
       color: black;
     }
 
@@ -48,7 +47,7 @@
               <li>Drag & drop slot_0.json into this window to import your save (for the other slots, use slot_1
                 or slot_2).</li>
               <li>Make your changes and click "Download" or press "Ctrl+S" to download the edited save file.</li>
-              <li>Place the file downloaded from this site into your save folder as either
+              <li>Replace the file downloaded from this site back into your save folder as either
                 slot_0.json, slot_1.json, or slot_2.json depending on which save slot you wish to use it with.</li>
               <li>Run the game!</li>
             </ol>
@@ -69,13 +68,21 @@
             <h2 class="mdl-card__title-text">Cult Name</h2>
           </div>
           <div class="mdl-card__supporting-text">
-            <div class="mdl-textfield mdl-js-textfield">
-              <input class="mdl-textfield__input" type="text" id="cult-name-input">
+            <input class="mdl-textfield__input" type="text" id="cult-name-input">
+          </div>
+        </div>
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-shadow--2dp mdl-cell mdl-cell--6-col">
+          <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Cultist Names</h2>
+          </div>
+          <div class="mdl-card__supporting-text">
+            <div id="cultist-names">
             </div>
           </div>
         </div>
         <div class="mdl-cell--3-col"></div>
-
       </div>
       <div aria-live="assertive" aria-atomic="true" aria-relevant="text" class="mdl-snackbar mdl-js-snackbar">
         <div class="mdl-snackbar__text"></div>

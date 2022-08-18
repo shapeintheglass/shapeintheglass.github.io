@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" class="mdl-js">
+
+<head>
+  <meta charset="utf-8" />
+  <title>CotL Save File Editor</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.deep_purple-indigo.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.3.js"></script>
+  <script src="utils.js"></script>
+  <script src="header.js"></script>
+  <style>
+    .mdl-card__supporting-text,
+    .mdl-textfield__label {
+      color: black;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mdl-layout mdl-js-layout" ondrop="dropHandler(event)" ondragover="event.preventDefault()">
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row">
+        <span class="mdl-layout__title">CotL Save File Editor</span>
+        <div class="mdl-layout-spacer"></div>
+      </div>
+    </header>
+    <main class="mdl-layout__content">
+      <div class="mdl-grid">
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-shadow--2dp mdl-cell mdl-cell--6-col">
+          <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">How to use this tool</h2>
+          </div>
+          <div class="mdl-card__supporting-text">
+            tl;dr Drag save file here, make changes, click "download"
+            <ol>
+              <li>Open Windows Explorer and go to <code><b>%USERPROFILE%\AppData\LocalLow\Massive Monster\Cult Of The
+                      Lamb\saves</b></code></li>
+              <li><b>Make a backup of this folder somewhere</b> in case you need to go back to it later!!!</li>
+              <li>Drag & drop either slot_0.json, slot_1.json, or slot_2.json into this window depending on which save
+                slot you wish to edit.</li>
+              <li>Make your changes and click "Download" or press "Ctrl+S" to download the edited save file.</li>
+              <li>Place the file downloaded from this site into your save folder as either
+                slot_0.json, slot_1.json, or slot_2.json depending on which save slot you wish to use it with.</li>
+              <li>Run the game</li>
+            </ol>
+          </div>
+          <div class="mdl-card__actions">
+            <span style="padding:5px">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                title="Download edited save file" onClick="exportJson()" id="download-button">
+                <span>Download Edited Save File</span>
+              </button>
+            </span>
+          </div>
+        </div>
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-shadow--2dp mdl-cell mdl-cell--6-col">
+          <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Cult Name</h2>
+          </div>
+          <div class="mdl-card__supporting-text">
+            <div class="mdl-textfield mdl-js-textfield">
+              <input class="mdl-textfield__input" type="text" id="cult-name-input">
+              <label class="mdl-textfield__label" for="cult-name-input">Cult Name</label>
+            </div>
+          </div>
+        </div>
+        <div class="mdl-cell--3-col"></div>
+      </div>
+      <div aria-live="assertive" aria-atomic="true" aria-relevant="text" class="mdl-snackbar mdl-js-snackbar">
+        <div class="mdl-snackbar__text"></div>
+        <button type="button" class="mdl-snackbar__action"></button>
+      </div>
+    </main>
+  </div>
+  <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</body>
+<html>

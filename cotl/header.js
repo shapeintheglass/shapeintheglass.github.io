@@ -76,6 +76,9 @@ function saveToFile(fileNameToSave, fileContents, type) {
 function dropHandler(event) {
   event.preventDefault();
   console.log("drag detected");
+  jsonObj = "";
+  filename = "";
+  snackbar("Parsing... may take a while for large files");
   if (event.dataTransfer.items) {
     // Access only the first item dropped
     if (event.dataTransfer.items[0].kind === 'file') {
@@ -89,6 +92,7 @@ function dropHandler(event) {
           snackbar("Unable to parse save file")
         }
         populatePage(jsonObj);
+        snackbar("Finished parsing file");
       });
     }
   } else {

@@ -1,6 +1,9 @@
 const cultNameInputId = "cult-name-input";
 const downloadButtonId = "download-button";
 
+
+const cotlCultNameKey = "CultName";
+
 // Main container for all content in the imported file
 var jsonObj;
 // Filename to use when exporting
@@ -15,13 +18,19 @@ document.addEventListener('keydown', e => {
 });
 
 function populatePage(jsonObj) {
-  // 
+  document.getElementById(cultNameInputId).value = jsonObj[cotlCultNameKey]
+}
+
+function updateJson() {
+  // Cult name
+  jsonObj[cotlCultNameKey] = document.getElementById(cultNameInputId).value;
 }
 
 function exportJson() {
   if (jsonObj) {
-    snackbar("Exporting to file");
-    let textToSet = localStorage.getItem(localStorageJsonObjKey);
+    updateJson();
+    snackbar("Saving " + filename);
+    textToSet = JSON.stringify(jsonObj);
     saveToFile(filename, textToSet, 'text');
   }
 }
@@ -56,15 +65,14 @@ function dropHandler(event) {
       let file = event.dataTransfer.items[0].getAsFile();
       console.log(`Getting contents of file ${file.name}`);
       filename = file.name;
-      localStorage.setItem(localStorageFilenameKey, filename);
       file.arrayBuffer().then(buffer => {
         try {
-          localStorage.setItem(localStorageJsonObjKey, decryptOrGetJson(buffer));
+          decryptOrGetJson(buffer);
         } catch (e) {
           snackbar("Unable to parse save file")
         }
+        populatePage(jsonObj);
       });
-
     }
   } else {
     console.log("Not a file");
@@ -75,10 +83,10 @@ function dropHandler(event) {
 // Attempts to decrypt or parse into JSON
 function decryptOrGetJson(buffer) {
   try {
-    return decryptText(buffer);
+    jsonObj = JSON.parse(decryptText(buffer));
   } catch (e) {
     var enc = new TextDecoder("utf-8");
-    return enc.decode(buffer);
+    jsonObj = JSON.parse(enc.decode(buffer));
   }
 }
 
@@ -109,7 +117,7 @@ function snackbar(msg) {
   let notification = document.querySelector('.mdl-js-snackbar');
   let data = {
     message: msg,
-    timeout: 1000
+    timeout: 5000
   };
   notification.MaterialSnackbar.showSnackbar(data);
 }

@@ -1,10 +1,10 @@
 const cultNameInputId = "cult-name-input";
 const cultistNameDivId = "cultist-names";
-const downloadButtonId = "download-button";
-
+const cultistNameDeadDivId = "cultist-names-dead";
 
 const cotlCultNameKey = "CultName";
 const cotlFollowersArrKey = "Followers";
+const cotlFollowersDeadArrKey = "Followers_Dead";
 const cotlFollowersNameKey = "Name";
 
 // Main container for all content in the imported file
@@ -23,23 +23,36 @@ document.addEventListener('keydown', e => {
 function populatePage(jsonObj) {
   // Cult name
   document.getElementById(cultNameInputId).value = jsonObj[cotlCultNameKey]
-  // Cultist names
+  // Cultist names (living)
   let cultistDiv = document.getElementById(cultistNameDivId);
   let cultistNames = "";
   jsonObj[cotlFollowersArrKey].forEach(follower => {
     cultistNames += `<p>${follower[cotlFollowersNameKey]}: <input class="mdl-textfield__input" type="text" value="${follower[cotlFollowersNameKey]}"></p>`;
   });
   cultistDiv.innerHTML = cultistNames;
+  // Cultist names (dead)
+  let cultistDeadDiv = document.getElementById(cultistNameDeadDivId);
+  let cultistNamesDead = "";
+  jsonObj[cotlFollowersDeadArrKey].forEach(follower => {
+    cultistNamesDead += `<p>${follower[cotlFollowersNameKey]}: <input class="mdl-textfield__input" type="text" value="${follower[cotlFollowersNameKey]}"></p>`;
+  });
+  cultistDeadDiv.innerHTML = cultistNamesDead;
 }
 
 function updateJson() {
   // Cult name
   jsonObj[cotlCultNameKey] = document.getElementById(cultNameInputId).value;
-  // Cultist names
+  // Cultist names (living)
   let cultistNameTextFields = Array.from(document.getElementById(cultistNameDivId).children);
   for (let i = 0; i < cultistNameTextFields.length; i++) {
     let newFollowerName = cultistNameTextFields[i].firstElementChild.value;
     jsonObj[cotlFollowersArrKey][i][cotlFollowersNameKey] = newFollowerName;
+  }
+  // Cultist names (dead)
+  let cultistNameDeadTextFields = Array.from(document.getElementById(cultistNameDeadDivId).children);
+  for (let i = 0; i < cultistNameDeadTextFields.length; i++) {
+    let newFollowerName = cultistNameDeadTextFields[i].firstElementChild.value;
+    jsonObj[cotlFollowersDeadArrKey][i][cotlFollowersNameKey] = newFollowerName;
   }
 }
 

@@ -6,6 +6,142 @@ const cotlCultNameKey = "CultName";
 const cotlFollowersArrKey = "Followers";
 const cotlFollowersDeadArrKey = "Followers_Dead";
 const cotlFollowersNameKey = "Name";
+const cotlDoctrineUpgradesKey = "DoctrineUnlockedUpgrades";
+const cotlUpgradesKey = "UnlockedUpgrades";
+const cotlCultTraitsKey = "CultTrait";
+
+const doctrineIds = new Map([
+  [6, 'r-insp'],
+  [7, 'r-inti'],
+  [8, 'r-glor'],
+  [9, 'r-enli'],
+  [10, 'r-fait'],
+  [11, 'r-indu'],
+  [12, 'r-toil'],
+  [13, 'r-holy'],
+  [14, 'r-exto'],
+  [15, 'r-brib'],
+  [16, 'r-arch'],
+  [17, 'r-devo'],
+  [18, 'r-mate'],
+  [19, 'r-fals'],
+  [20, 'r-alms'],
+  [21, 'r-enri'],
+  [22, 'r-fast'],
+  [23, 'r-feas'],
+  [24, 'r-subt'],
+  [25, 'r-proh'],
+  [26, 'r-cann'],
+  [27, 'r-gras'],
+  [28, 'r-harv'],
+  [29, 'r-ocea'],
+  [30, 'r-bsac'],
+  [31, 'r-baft'],
+  [32, 'r-resu'],
+  [33, 'r-fune'],
+  [34, 'r-resp'],
+  [35, 'r-good'],
+  [36, 'r-retu'],
+  [37, 'r-grie'],
+  [38, 'r-murd'],
+  [39, 'r-asce'],
+  [40, 'r-figh'],
+  [41, 'r-wedd'],
+  [42, 'r-loya'],
+  [43, 'r-taxe'],
+  [44, 'r-orig'],
+  [45, 'r-abso'],
+  [47, 'r-sacr'],
+  [49, 'r-read'],
+  [50, 'r-bonf'],
+]);
+
+const doctrineIdsToCultTraits = new Map([
+  [30, 9],
+  [31, 3],
+  [34, 30],
+  [35, 31],
+  [10, 11],
+  [11, 24],
+  [18, 18],
+  [19, 18],
+  [16, 27],
+  [17, 26],
+  [44, 7],
+  [45, 8],
+  [26, 5],
+  [27, 6],
+  [24, 28],
+  [25, 29]
+]);
+
+const doctrineIdsToUpgrades = new Map([
+  [32, 110],
+  [33, 111],
+  [36, 53],
+  [37, 57],
+  [8, 100],
+  [9, 101],
+  [12, 102],
+  [13, 103],
+  [20, 104],
+  [21, 105],
+  [39, 154],
+  [40, 112],
+  [41, 113],
+  [44, 7],
+  [45, 8],
+  [42, 114],
+  [43, 115],
+  [22, 106],
+  [23, 107],
+  [28, 108],
+  [29, 109],
+]);
+
+function setDoctrineCheckbox(doctrineId) {
+  let checkboxId = doctrineIds.get(doctrineId);
+  let checkboxElement = document.getElementById(checkboxId);
+  checkboxElement.setAttribute("checked", "true");
+}
+
+function applyDoctrineCheckboxes() {
+  // Clear the existing array of doctrines
+  let newDoctrines = [];
+  let newCultTraits = new Set(jsonObj[cotlCultTraitsKey]);
+  let newUpgrades = new Set(jsonObj[cotlUpgradesKey]);
+
+  for (var i = 6; i < 51; i++) {
+    let checkboxId = doctrineIds.get(i);
+    if (!checkboxId) {
+      continue;
+    }
+    let isChecked = document.getElementById(checkboxId).checked;
+    let cultTrait = doctrineIdsToCultTraits.get(i);
+    let upgrade = doctrineIdsToUpgrades.get(i);
+    if (isChecked) {
+      newDoctrines.push(i);
+      // add cult traits / upgrades if possible
+      if (cultTrait && !newCultTraits.has(cultTrait)) {
+        newCultTraits.add(cultTrait);
+      }
+      if (upgrade && !newUpgrades.has(upgrade)) {
+        newUpgrades.add(upgrade);
+      }
+    } else {
+      // remove cult traits / upgrades if possible
+      if (cultTrait && newCultTraits.has(cultTrait)) {
+        newCultTraits.delete(cultTrait);
+      }
+      if (upgrade && newUpgrades.has(upgrade)) {
+        newUpgrades.delete(upgrade);
+      }
+    }
+  }
+  jsonObj[cotlDoctrineUpgradesKey] = newDoctrines;
+  jsonObj[cotlCultTraitsKey] = Array.from(newCultTraits);
+  jsonObj[cotlUpgradesKey] = Array.from(newUpgrades);
+}
 
 // Main container for all content in the imported file
 var jsonObj;
@@ -37,6 +173,9 @@ function populatePage(jsonObj) {
     cultistNamesDead += `<p>${follower[cotlFollowersNameKey]}: <input class="mdl-textfield__input" type="text" value="${follower[cotlFollowersNameKey]}"></p>`;
   });
   cultistDeadDiv.innerHTML = cultistNamesDead;
+
+  // Doctrines
+  jsonObj[cotlDoctrineUpgradesKey].forEach(doctrineId => setDoctrineCheckbox(doctrineId));
 }
 
 function updateJson() {
@@ -54,6 +193,9 @@ function updateJson() {
     let newFollowerName = cultistNameDeadTextFields[i].firstElementChild.value;
     jsonObj[cotlFollowersDeadArrKey][i][cotlFollowersNameKey] = newFollowerName;
   }
+
+  // Doctrines
+  applyDoctrineCheckboxes();
 }
 
 function exportJson() {
@@ -151,7 +293,7 @@ function snackbar(msg) {
   let notification = document.querySelector('.mdl-js-snackbar');
   let data = {
     message: msg,
-    timeout: 5000
+    timeout: 2000
   };
   notification.MaterialSnackbar.showSnackbar(data);
 }

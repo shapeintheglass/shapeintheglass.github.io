@@ -10,6 +10,7 @@
   <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
   <script src="https://code.jquery.com/jquery-2.1.3.js"></script>
   <script src="header.js"></script>
+  <script src="enums.js"></script>
   <style>
     .mdl-card__supporting-text {
       color: black;
@@ -39,7 +40,7 @@
             <h2 class="mdl-card__title-text">How to use this tool</h2>
           </div>
           <div class="mdl-card__supporting-text">
-            tl;dr Drag save file here, make changes, click "download", put into game
+            Use with caution! Save editing can and will potentially break your game.
             <ol>
               <li>In Windows Explorer, go to:<br /> <code><b>%USERPROFILE%\AppData\LocalLow\Massive Monster\Cult Of The
                       Lamb\saves</b></code></li>
@@ -90,6 +91,135 @@
           </div>
           <div class="mdl-card__supporting-text">
             <div id="cultist-names-dead">
+            </div>
+          </div>
+        </div>
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-cell--3-col"></div>
+        <div class="mdl-shadow--2dp mdl-cell mdl-cell--6-col">
+          <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Rituals/Doctrines</h2>
+          </div>
+          <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--4-col"></div>
+            <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-sacr">Sacrifice of the Flesh</input>
+            </div>
+            <div class="mdl-cell mdl-cell--4-col"></div>
+            <div class="mdl-cell mdl-cell--4-col"></div>
+            <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-read">Read Minds</input></div>
+            <div class="mdl-cell mdl-cell--4-col"></div>
+            <div class="mdl-cell mdl-cell--4-col"></div>
+            <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-bonf">Bonfire</input></div>
+            <div class="mdl-cell mdl-cell--4-col"></div>
+
+          </div>
+          <div class="mdl-card__supporting-text">
+            <h3 class="mdl-card__title-text">Afterlife</h3>
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-bsac">Belief in Sacrifice</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-baft">Belief in Afterlife</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-resu">Resurrection</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-fune">Funeral</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-resp">Respect Your Elders</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-good">Good Die Young</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-retu">Return to the Earth</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-grie">Grieve the Fallen</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+            </div>
+            <h3 class="mdl-card__title-text">Work and Worship</h3>
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-fait">Faithful</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-indu">Industrious</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-insp">Inspire</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-inti">Intimidate</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-glor">Glory of Construction</input>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-enli">Ritual of Enlightenment</input>
+              </div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-toil">Glory Through Toil</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-holy">Holy Day Ritual</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+            </div>
+            <h3 class="mdl-card__title-text">Possessions</h3>
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-exto">Extort Tithes</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-brib">Bribe Follower</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-mate">Belief in Materialism</input>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-fals">Belief in False Idols</input>
+              </div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-alms">Alms for the Poor</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-enri">Ritual of Enrichment</input>
+              </div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-arch">Sacral Architecture Trait</input>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-devo">Devotee</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+            </div>
+            <h3 class="mdl-card__title-text">Law & Order</h3>
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-murd">Murder</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-asce">Ascend</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-figh">Ritualist Fight Pit</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-wedd">Wedding</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-orig">Belief in Original Sin</input>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-abso">Belief in Absolution</input>
+              </div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-loya">Loyalty Enforcer</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-taxe">Tax Enforcer</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+            </div>
+            <h3 class="mdl-card__title-text">Sustenance</h3>
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-fast">Ritual Fast</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-feas">Feasting Ritual</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-cann">Cannibal</input></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-gras">Grass Eater</input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-harv">Ritual of the Harvest</input>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-ocea">Ritual of the Ocean's Bounty
+                </input></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-subt">Substances Encouraged</input>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col"><input type="checkbox" id="r-proh">Belief in Prohibitionism</input>
+              </div>
+              <div class="mdl-cell mdl-cell--2-col"></div>
             </div>
           </div>
         </div>
